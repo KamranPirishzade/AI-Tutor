@@ -27,9 +27,17 @@ export interface TtsResponse {
   mimeType: "audio/wav";
 }
 
-export interface ChatRequest {
+export interface TranscribeRequest {
   audioBase64: string;
   audioMimeType: string;
+}
+
+export interface TranscribeResponse {
+  text: string;
+}
+
+export interface ChatRequest {
+  questionText: string;
   currentSlide: {
     index: number;
     narrationText: string;
@@ -44,7 +52,8 @@ export interface ChatResponse {
 
 export interface ChatMessage {
   id: string;
-  answerText: string;
-  focusTerm: string | null;
+  role: "user" | "assistant";
+  text: string;
+  focusTerm?: string | null;
   audioBase64?: string;
 }

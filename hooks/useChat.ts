@@ -2,7 +2,15 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { blobToBase64 } from "@/lib/audio";
-import type { ChatRequest, ChatResponse, TtsRequest, TtsResponse, ChatMessage } from "@/types";
+import type {
+  TranscribeRequest,
+  TranscribeResponse,
+  ChatRequest,
+  ChatResponse,
+  TtsRequest,
+  TtsResponse,
+  ChatMessage,
+} from "@/types";
 
 async function postJson<TResponse>(url: string, body: unknown): Promise<TResponse> {
   const res = await fetch(url, {
@@ -17,47 +25,66 @@ async function postJson<TResponse>(url: string, body: unknown): Promise<TRespons
   return res.json() as Promise<TResponse>;
 }
 
-interface AskQuestionInput {
-  blob: Blob;
+/** Voice -> text only. Doesn't send anything — the caller decides when the
+ * resulting text becomes an actual chat message. */
+export function useTranscribe() {
+  const mutation = useMutation({
+    mutationFn: async (blob: Blob): Promise<string> => {
+      const audioBase64 = await blobToBase64(blob);
+      const req: TranscribeRequest = { audioBase64, audioMimeType: blob.type };
+      const { text } = await postJson<TranscribeResponse>("/api/transcribe", req);
+      return text;
+    },
+  });
+
+  return {
+    transcribe: mutation.mutateAsync,
+    isPending: mutation.isPending,
+    error: mutation.error instanceof Error ? mutation.error.message : undefined,
+  };
+}
+
+interface SendMessageInput {
+  questionText: string;
   currentSlideIndex: number;
   currentSlideNarration: string;
   deckSummary: string;
 }
 
+/** Text question -> Gemini answer -> TTS playback. Used for both typed and
+ * voice-transcribed messages, since by this point it's just text. */
 export function useChat() {
   const mutation = useMutation({
     mutationFn: async ({
-      blob,
+      questionText,
       currentSlideIndex,
       currentSlideNarration,
       deckSummary,
-    }: AskQuestionInput): Promise<ChatMessage> => {
-      const audioBase64 = await blobToBase64(blob);
-
+    }: SendMessageInput): Promise<ChatMessage> => {
       const chatReq: ChatRequest = {
-        audioBase64,
-        audioMimeType: blob.type,
+        questionText,
         currentSlide: { index: currentSlideIndex, narrationText: currentSlideNarration },
         deckSummary,
       };
       const { answerText, focusTerm } = await postJson<ChatResponse>("/api/chat", chatReq);
 
       const ttsReq: TtsRequest = { text: answerText };
-      const { audioBase64: replyAudioBase64 } = await postJson<TtsResponse>("/api/tts", ttsReq);
+      const { audioBase64 } = await postJson<TtsResponse>("/api/tts", ttsReq);
 
-      new Audio(`data:audio/wav;base64,${replyAudioBase64}`).play().catch(() => {});
+      new Audio(`data:audio/wav;base64,${audioBase64}`).play().catch(() => {});
 
       return {
         id: crypto.randomUUID(),
-        answerText,
+        role: "assistant",
+        text: answerText,
         focusTerm,
-        audioBase64: replyAudioBase64,
+        audioBase64,
       };
     },
   });
 
   return {
-    askQuestion: mutation.mutateAsync,
+    sendMessage: mutation.mutateAsync,
     isPending: mutation.isPending,
     error: mutation.error instanceof Error ? mutation.error.message : undefined,
   };

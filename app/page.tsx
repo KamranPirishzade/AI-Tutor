@@ -39,8 +39,8 @@ export default function Home() {
   const currentSlide = slides[currentSlideIndex];
 
   return (
-    <main className="flex flex-1">
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8">
+    <main className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-start gap-4 overflow-y-auto p-8">
         <p className="text-sm text-neutral-500">
           {readyCount}/{totalCount} slayd hazır
         </p>

@@ -93,9 +93,37 @@ export async function synthesizeSpeech(
   return { base64, mimeType };
 }
 
+export async function transcribeAudio(
+  audioBase64: string,
+  audioMimeType: string
+): Promise<string> {
+  const ai = getGeminiClient();
+  const response = await ai.models.generateContent({
+    model: TEXT_MODEL,
+    contents: [
+      {
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: audioMimeType, data: audioBase64 } },
+          {
+            text:
+              "Bu audioda deyilənləri sözbəsöz mətnə çevir. " +
+              "Yalnız transkripsiya mətnini qaytar, əlavə şərh, giriş sözü və ya dırnaq işarəsi əlavə etmə.",
+          },
+        ],
+      },
+    ],
+  });
+
+  const text = response.text;
+  if (!text) {
+    throw new Error("Gemini returned no transcription");
+  }
+  return text.trim();
+}
+
 export async function answerChatQuestion(params: {
-  audioBase64: string;
-  audioMimeType: string;
+  questionText: string;
   currentSlideNarration: string;
   deckSummary: string;
 }): Promise<ChatResponse> {
@@ -107,16 +135,11 @@ export async function answerChatQuestion(params: {
         role: "user",
         parts: [
           {
-            inlineData: {
-              mimeType: params.audioMimeType,
-              data: params.audioBase64,
-            },
-          },
-          {
             text:
-              "İstifadəçinin səsli sualını dinlə və ona cavab ver.\n\n" +
+              `İstifadəçinin sualı: ${params.questionText}\n\n` +
               `Hazırkı slaydın izahı: ${params.currentSlideNarration}\n\n` +
               `Bütün təqdimatın xülasəsi: ${params.deckSummary}\n\n` +
+              "Yuxarıdakı suala cavab ver. " +
               "Cavabında konkret bir termin, rəqəm və ya düstura istinad edirsənsə, " +
               "onu focusTerm sahəsində dəqiq olaraq (cavab mətnindəki yazılışı ilə eyni) qeyd et. " +
               "Əgər konkret bir elementə istinad yoxdursa, focusTerm-i null et.",
