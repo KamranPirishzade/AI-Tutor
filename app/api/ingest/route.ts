@@ -1,0 +1,23 @@
+import { NextResponse } from "next/server";
+import { generateNarration } from "@/lib/gemini";
+import { withRetry } from "@/lib/concurrency";
+import type { IngestRequest, IngestResponse } from "@/types";
+
+export const maxDuration = 30;
+
+export async function POST(request: Request) {
+  const body = (await request.json()) as IngestRequest;
+
+  try {
+    const narrationText = await withRetry(() =>
+      generateNarration(body.imageBase64, body.mimeType, body.slideIndex, body.totalSlides)
+    );
+    const response: IngestResponse = { narrationText };
+    return NextResponse.json(response);
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Naməlum xəta baş verdi" },
+      { status: 500 }
+    );
+  }
+}
