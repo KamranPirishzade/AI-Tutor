@@ -75,11 +75,14 @@ export function ChatPanel({
   }
 
   return (
-    <aside className="flex w-80 flex-col gap-3 border-l border-neutral-200 p-4">
+    <aside className="flex w-80 flex-col gap-3 border-l border-neutral-200 p-4 dark:border-neutral-700">
       <h2 className="font-semibold">Suallar</h2>
       <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
         {messages.map((m) => (
-          <div key={m.id} className="rounded bg-neutral-100 p-2 text-sm">
+          <div
+            key={m.id}
+            className="rounded bg-neutral-100 p-2 text-sm dark:bg-neutral-800"
+          >
             {renderAnswer(m.answerText, m.focusTerm)}
           </div>
         ))}

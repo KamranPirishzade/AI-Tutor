@@ -17,8 +17,9 @@ export async function POST(request: Request) {
     };
     return NextResponse.json(response);
   } catch (err) {
+    console.error("[/api/tts]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Naməlum xəta baş verdi" },
+      { error: "Səsləndirmə zamanı xəta baş verdi. Yenidən cəhd edin." },
       { status: 500 }
     );
   }

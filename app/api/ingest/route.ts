@@ -15,8 +15,9 @@ export async function POST(request: Request) {
     const response: IngestResponse = { narrationText };
     return NextResponse.json(response);
   } catch (err) {
+    console.error("[/api/ingest]", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Naməlum xəta baş verdi" },
+      { error: "Slaydı izah edərkən xəta baş verdi. Yenidən cəhd edin." },
       { status: 500 }
     );
   }

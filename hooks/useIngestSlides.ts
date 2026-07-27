@@ -19,7 +19,7 @@ async function postJson<TResponse>(url: string, body: unknown): Promise<TRespons
   });
   if (!res.ok) {
     const errorBody = await res.json().catch(() => null);
-    throw new Error(errorBody?.error ?? `${url} failed with status ${res.status}`);
+    throw new Error(errorBody?.error ?? `Server xətası (${res.status}). Yenidən cəhd edin.`);
   }
   return res.json() as Promise<TResponse>;
 }

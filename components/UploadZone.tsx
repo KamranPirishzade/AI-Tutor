@@ -23,11 +23,15 @@ export function UploadZone({
       const buffer = await file.arrayBuffer();
       const slides = await renderPdfToImages(buffer);
       if (slides.length === 0) {
-        throw new Error("PDF-də heç bir səhifə tapılmadı.");
+        setError("PDF-də heç bir səhifə tapılmadı.");
+        setStatus("error");
+        return;
       }
       onReady(crypto.randomUUID(), slides);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Fayl emal edilərkən xəta baş verdi.");
+      // pdf.js's own errors are internal/English — don't leak them, just log.
+      console.error("[UploadZone]", err);
+      setError("Fayl emal edilərkən xəta baş verdi. Başqa bir PDF ilə cəhd edin.");
       setStatus("error");
     }
   }
@@ -35,11 +39,11 @@ export function UploadZone({
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 p-8">
       <h1 className="text-2xl font-semibold">AI Repetitor</h1>
-      <p className="max-w-md text-center text-neutral-500">
+      <p className="max-w-md text-center text-neutral-500 dark:text-neutral-400">
         Təqdimatınızı (PDF formatında) yükləyin — AI onu Azərbaycan dilində sizə izah
         etsin.
       </p>
-      <label className="cursor-pointer rounded-lg border-2 border-dashed border-neutral-400 px-12 py-16 text-center transition hover:border-neutral-600">
+      <label className="cursor-pointer rounded-lg border-2 border-dashed border-neutral-400 px-12 py-16 text-center transition hover:border-neutral-600 dark:border-neutral-600 dark:hover:border-neutral-400">
         <input
           type="file"
           accept="application/pdf"

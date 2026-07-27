@@ -49,13 +49,13 @@ export function PresentationViewer({
       <img
         src={current.imageDataUrl}
         alt={`Slayd ${current.index + 1}`}
-        className="w-full rounded border border-neutral-300"
+        className="w-full rounded border border-neutral-300 dark:border-neutral-700"
       />
-      <div className="flex items-center gap-3 text-sm text-neutral-600">
+      <div className="flex items-center gap-3 text-sm text-neutral-600 dark:text-neutral-400">
         <span>
           Slayd {current.index + 1} / {slides.length}
         </span>
-        {current.status !== "ready" && <span>Növbəti slayd hazırlanır...</span>}
+        {current.status !== "ready" && <span>Slayd hazırlanır...</span>}
         {current.status === "error" && (
           <span className="text-red-600">Xəta: {current.error}</span>
         )}
