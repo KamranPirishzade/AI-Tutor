@@ -1,6 +1,6 @@
 "use client";
 
-import { Pause, Play } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { useSlideAudioPlayer } from "@/hooks/useSlideAudioPlayer";
 import type { Slide } from "@/types";
 
@@ -11,7 +11,8 @@ export function PresentationViewer({
   slides: Slide[];
   onIndexChange?: (index: number) => void;
 }) {
-  const { currentSlide, isPaused, togglePause } = useSlideAudioPlayer(slides, onIndexChange);
+  const { currentSlide, isPaused, togglePause, goToPrevious, goToNext, hasPrevious, hasNext } =
+    useSlideAudioPlayer(slides, onIndexChange);
 
   if (!currentSlide) return null;
 
@@ -19,10 +20,12 @@ export function PresentationViewer({
     <div className="flex w-full max-w-3xl flex-col items-center gap-4">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
+        key={currentSlide.index}
         src={currentSlide.imageDataUrl}
         alt={`Slayd ${currentSlide.index + 1}`}
-        className="w-full rounded-2xl border border-paper-line bg-surface shadow-sm"
+        className="slide-fade-in w-full rounded-2xl border border-paper-line bg-surface shadow-sm"
       />
+
       <div className="flex flex-wrap items-center gap-3">
         <span className="font-mono text-xs tracking-wide text-ink-soft">
           {String(currentSlide.index + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
@@ -37,6 +40,19 @@ export function PresentationViewer({
         {currentSlide.status === "error" && (
           <span className="text-xs text-margin">Xəta: {currentSlide.error}</span>
         )}
+      </div>
+
+      <div className="flex items-center gap-2">
+        {slides.length > 1 && (
+          <button
+            onClick={goToPrevious}
+            disabled={!hasPrevious}
+            aria-label="Əvvəlki slayd"
+            className="flex items-center justify-center rounded-full border border-ink-soft/30 bg-surface p-2 text-ink transition hover:border-margin hover:text-margin disabled:pointer-events-none disabled:opacity-30"
+          >
+            <ChevronLeft size={17} />
+          </button>
+        )}
 
         <button
           onClick={togglePause}
@@ -46,6 +62,17 @@ export function PresentationViewer({
           {isPaused ? <Play size={15} /> : <Pause size={15} />}
           {isPaused ? "Davam et" : "Pauza"}
         </button>
+
+        {slides.length > 1 && (
+          <button
+            onClick={goToNext}
+            disabled={!hasNext}
+            aria-label="Növbəti slayd"
+            className="flex items-center justify-center rounded-full border border-ink-soft/30 bg-surface p-2 text-ink transition hover:border-margin hover:text-margin disabled:pointer-events-none disabled:opacity-30"
+          >
+            <ChevronRight size={17} />
+          </button>
+        )}
       </div>
     </div>
   );

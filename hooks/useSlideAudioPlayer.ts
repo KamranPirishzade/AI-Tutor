@@ -1,16 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { fadeAudioVolume } from "@/lib/audioFade";
 import type { Slide } from "@/types";
 
+const AUDIO_FADE_MS = 220;
+
 /** Plays each slide's narration audio in order, auto-advancing to the next
- * slide when playback ends. Reports the current index up to the caller (via
+ * slide when playback ends. Also supports jumping to an arbitrary slide
+ * (manual next/previous) — the outgoing slide's audio fades out while the
+ * incoming one fades in, so a manual switch feels soft rather than an
+ * abrupt cut. Reports the current index up to the caller (via
  * onIndexChange) so other parts of the UI, like the chat panel, can know
  * which slide is currently showing. */
 export function useSlideAudioPlayer(slides: Slide[], onIndexChange?: (index: number) => void) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const currentSlide = slides[currentIndex];
 
@@ -23,18 +28,21 @@ export function useSlideAudioPlayer(slides: Slide[], onIndexChange?: (index: num
     if (!currentSlide?.audioBase64 || isPaused) return;
 
     const audio = new Audio(`data:audio/wav;base64,${currentSlide.audioBase64}`);
-    audioRef.current = audio;
+    audio.volume = 0;
     audio.onended = () => {
       setCurrentIndex((index) => (index + 1 < slides.length ? index + 1 : index));
     };
-    audio.play().catch(() => {
-      // Autoplay can be blocked before any user gesture on the page — the
-      // pause/resume button doubles as a manual retry in that case.
-    });
+    audio
+      .play()
+      .then(() => fadeAudioVolume(audio, 0, 1, AUDIO_FADE_MS))
+      .catch(() => {
+        // Autoplay can be blocked before any user gesture on the page — the
+        // pause/resume button doubles as a manual retry in that case.
+      });
 
     return () => {
-      audio.pause();
       audio.onended = null;
+      fadeAudioVolume(audio, audio.volume, 0, AUDIO_FADE_MS, () => audio.pause());
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSlide?.audioBase64, isPaused]);
@@ -43,5 +51,19 @@ export function useSlideAudioPlayer(slides: Slide[], onIndexChange?: (index: num
     setIsPaused((paused) => !paused);
   }
 
-  return { currentSlide, isPaused, togglePause };
+  function goToSlide(index: number) {
+    if (index < 0 || index >= slides.length) return;
+    setIsPaused(false);
+    setCurrentIndex(index);
+  }
+
+  return {
+    currentSlide,
+    isPaused,
+    togglePause,
+    goToPrevious: () => goToSlide(currentIndex - 1),
+    goToNext: () => goToSlide(currentIndex + 1),
+    hasPrevious: currentIndex > 0,
+    hasNext: currentIndex + 1 < slides.length,
+  };
 }
