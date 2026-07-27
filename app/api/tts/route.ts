@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { synthesizeSpeech } from "@/lib/gemini";
 import { pcmToWav } from "@/lib/wav";
-import { withRetry } from "@/lib/concurrency";
+import { withRetry } from "@/lib/retry";
 import type { TtsRequest, TtsResponse } from "@/types";
 
 export const maxDuration = 30;

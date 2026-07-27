@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateNarration } from "@/lib/gemini";
-import { withRetry } from "@/lib/concurrency";
+import { withRetry } from "@/lib/retry";
 import type { IngestRequest, IngestResponse } from "@/types";
 
 export const maxDuration = 30;

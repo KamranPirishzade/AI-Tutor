@@ -1,40 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { renderPdfToImages, type RenderedSlide } from "@/lib/pdfRender";
+import { usePdfUpload } from "@/hooks/usePdfUpload";
+import type { RenderedSlide } from "@/lib/pdfRender";
 
 export function UploadZone({
   onReady,
 }: {
   onReady: (deckId: string, slides: RenderedSlide[]) => void;
 }) {
-  const [status, setStatus] = useState<"idle" | "rendering" | "error">("idle");
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleFile(file: File) {
-    if (file.type !== "application/pdf") {
-      setError("Zəhmət olmasa yalnız PDF fayl yükləyin.");
-      setStatus("error");
-      return;
-    }
-    setStatus("rendering");
-    setError(null);
-    try {
-      const buffer = await file.arrayBuffer();
-      const slides = await renderPdfToImages(buffer);
-      if (slides.length === 0) {
-        setError("PDF-də heç bir səhifə tapılmadı.");
-        setStatus("error");
-        return;
-      }
-      onReady(crypto.randomUUID(), slides);
-    } catch (err) {
-      // pdf.js's own errors are internal/English — don't leak them, just log.
-      console.error("[UploadZone]", err);
-      setError("Fayl emal edilərkən xəta baş verdi. Başqa bir PDF ilə cəhd edin.");
-      setStatus("error");
-    }
-  }
+  const { status, handleFileSelected } = usePdfUpload(onReady);
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 p-8">
@@ -51,12 +25,11 @@ export function UploadZone({
           disabled={status === "rendering"}
           onChange={(e) => {
             const file = e.target.files?.[0];
-            if (file) handleFile(file);
+            if (file) handleFileSelected(file);
           }}
         />
         {status === "rendering" ? "Slaydlar hazırlanır..." : "PDF seçmək üçün klikləyin"}
       </label>
-      {error && <p className="text-red-600">{error}</p>}
     </main>
   );
 }

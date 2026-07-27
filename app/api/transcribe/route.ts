@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { transcribeAudio } from "@/lib/gemini";
-import { withRetry } from "@/lib/concurrency";
+import { withRetry } from "@/lib/retry";
 import type { TranscribeRequest, TranscribeResponse } from "@/types";
 
 export const maxDuration = 30;
