@@ -1,26 +1,140 @@
 @import "tailwindcss";
 
+/*
+ * Visual identity: a soft, quiet take on the Azerbaijani school exercise
+ * book (dəftər) — pale grid ("kletka") paper and the traditional red
+ * margin rule ("sahə xətti"), reused literally as the divider between the
+ * slide viewer and the chat panel. The chat panel IS the margin column;
+ * the AI's answers are marginalia. Kept deliberately understated —
+ * softened colors, generous space, no skeuomorphic decoration.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --paper: #f4f5f0;
+  --paper-line: #e2e6db;
+  --surface: #fdfdfb;
+  --ink: #2e3b4e;
+  --ink-soft: #6b7684;
+  --margin: #c17f72;
+  --margin-soft: #dcb3a9;
+  --highlight: #dce7ae;
+  --highlight-ink: #3b4420;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --paper: #1b2027;
+    --paper-line: #2b323a;
+    --surface: #22282f;
+    --ink: #dee3d8;
+    --ink-soft: #8b9298;
+    --margin: #d89489;
+    --margin-soft: #6e453e;
+    --highlight: #dce7ae;
+    --highlight-ink: #2a3010;
   }
 }
 
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-line: var(--paper-line);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-margin: var(--margin);
+  --color-margin-soft: var(--margin-soft);
+  --color-highlight: var(--highlight);
+  --color-highlight-ink: var(--highlight-ink);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body), sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display), sans-serif;
+}
+
+/* A faint kletka grid — texture, not decoration. Kept subtle by design. */
+.grid-paper {
+  background-image:
+    linear-gradient(var(--paper-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: center;
+  opacity: 1;
+}
+
+/* The signature moment: a highlighter stroke drawing itself in behind a
+ * newly-focused term, like a tutor marking your page as they speak. */
+@keyframes highlighter-stroke-in {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.highlighter-mark {
+  position: relative;
+  isolation: isolate;
+  white-space: nowrap;
+}
+
+.highlighter-mark::before {
+  content: "";
+  position: absolute;
+  inset: 0.05em -0.15em;
+  background: var(--highlight);
+  border-radius: 0.2em;
+  transform-origin: left center;
+  z-index: -1;
+  animation: highlighter-stroke-in 0.35s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .highlighter-mark::before {
+    animation: none;
+  }
+}
+
+/* Typing indicator — three dots bouncing in sequence, the familiar
+ * "someone is replying" pattern from ordinary chat apps. */
+@keyframes typing-dot-bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-0.15rem);
+    opacity: 1;
+  }
+}
+
+.typing-dot {
+  animation: typing-dot-bounce 1.1s ease-in-out infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typing-dot {
+    animation: none;
+    opacity: 0.7;
+  }
 }

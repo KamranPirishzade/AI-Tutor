@@ -1,6 +1,9 @@
 import type { ChatMessage } from "@/types";
 
-function withFocusTermBolded(text: string, focusTerm?: string | null) {
+/** Wraps the focus term in the highlighter-mark span (see globals.css) — a
+ * marker stroke drawn in behind the term, like a tutor circling it on your
+ * page as they answer. */
+function withFocusTermHighlighted(text: string, focusTerm?: string | null) {
   if (!focusTerm) return text;
   const matchIndex = text.indexOf(focusTerm);
   if (matchIndex === -1) return text;
@@ -8,7 +11,9 @@ function withFocusTermBolded(text: string, focusTerm?: string | null) {
   return (
     <>
       {text.slice(0, matchIndex)}
-      <strong>{text.slice(matchIndex, matchIndex + focusTerm.length)}</strong>
+      <span className="highlighter-mark font-medium text-highlight-ink">
+        {text.slice(matchIndex, matchIndex + focusTerm.length)}
+      </span>
       {text.slice(matchIndex + focusTerm.length)}
     </>
   );
@@ -19,13 +24,13 @@ export function ChatMessageBubble({ message }: { message: ChatMessage }) {
 
   return (
     <div
-      className={`max-w-[85%] rounded p-2 text-sm ${
+      className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
         isUserMessage
-          ? "self-end bg-neutral-800 text-white"
-          : "self-start bg-neutral-100 dark:bg-neutral-800"
+          ? "self-end bg-ink text-paper"
+          : "self-start border border-paper-line bg-surface text-ink"
       }`}
     >
-      {isUserMessage ? message.text : withFocusTermBolded(message.text, message.focusTerm)}
+      {isUserMessage ? message.text : withFocusTermHighlighted(message.text, message.focusTerm)}
     </div>
   );
 }

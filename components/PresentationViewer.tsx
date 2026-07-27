@@ -1,5 +1,6 @@
 "use client";
 
+import { Pause, Play } from "lucide-react";
 import { useSlideAudioPlayer } from "@/hooks/useSlideAudioPlayer";
 import type { Slide } from "@/types";
 
@@ -20,20 +21,29 @@ export function PresentationViewer({
       <img
         src={currentSlide.imageDataUrl}
         alt={`Slayd ${currentSlide.index + 1}`}
-        className="w-full rounded border border-neutral-300 dark:border-neutral-700"
+        className="w-full rounded-2xl border border-paper-line bg-surface shadow-sm"
       />
-      <div className="flex items-center gap-3 text-sm text-neutral-600 dark:text-neutral-400">
-        <span>
-          Slayd {currentSlide.index + 1} / {slides.length}
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="font-mono text-xs tracking-wide text-ink-soft">
+          {String(currentSlide.index + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
         </span>
-        {currentSlide.status !== "ready" && <span>Slayd hazırlanır...</span>}
-        {currentSlide.status === "error" && (
-          <span className="text-red-600">Xəta: {currentSlide.error}</span>
+
+        {currentSlide.status !== "ready" && (
+          <span className="flex items-center gap-1.5 text-xs text-ink-soft">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-margin" />
+            Slayd hazırlanır...
+          </span>
         )}
+        {currentSlide.status === "error" && (
+          <span className="text-xs text-margin">Xəta: {currentSlide.error}</span>
+        )}
+
         <button
           onClick={togglePause}
-          className="rounded bg-neutral-800 px-3 py-1 text-white"
+          aria-label={isPaused ? "Davam et" : "Pauza"}
+          className="flex items-center gap-1.5 rounded-full border border-ink-soft/30 bg-surface px-4 py-1.5 text-sm text-ink transition hover:border-margin hover:text-margin"
         >
+          {isPaused ? <Play size={15} /> : <Pause size={15} />}
           {isPaused ? "Davam et" : "Pauza"}
         </button>
       </div>

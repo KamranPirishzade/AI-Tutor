@@ -1,4 +1,5 @@
 import { ChatMessageBubble } from "./ChatMessageBubble";
+import { TypingIndicator } from "./TypingIndicator";
 import type { ChatMessage } from "@/types";
 
 export function ChatMessageList({
@@ -12,11 +13,16 @@ export function ChatMessageList({
 }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
+      {messages.length === 0 && (
+        <p className="mt-8 text-center text-sm text-ink-soft">
+          Slaydla bağlı sualınız var? Yazın və ya səsli soruşun.
+        </p>
+      )}
       {messages.map((message) => (
         <ChatMessageBubble key={message.id} message={message} />
       ))}
-      {isTranscribing && <p className="text-sm text-neutral-400">Səs mətnə çevrilir...</p>}
-      {isAnswering && <p className="text-sm text-neutral-400">Düşünürəm...</p>}
+      {isTranscribing && <TypingIndicator label="Səs mətnə çevrilir" />}
+      {isAnswering && <TypingIndicator label="Düşünürəm" />}
     </div>
   );
 }

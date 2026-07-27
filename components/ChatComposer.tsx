@@ -1,5 +1,7 @@
 "use client";
 
+import { Mic, Square, Send } from "lucide-react";
+
 export function ChatComposer({
   inputText,
   onInputTextChange,
@@ -28,7 +30,7 @@ export function ChatComposer({
         }}
         placeholder="Sualınızı yazın..."
         rows={1}
-        className="flex-1 resize-none rounded border border-neutral-300 p-2 text-sm dark:border-neutral-600 dark:bg-neutral-900"
+        className="flex-1 resize-none rounded-xl border border-paper-line bg-surface p-2.5 text-sm text-ink placeholder:text-ink-soft/70 focus:border-margin focus:outline-none"
       />
       <button
         onMouseDown={onStartRecording}
@@ -36,18 +38,22 @@ export function ChatComposer({
         onMouseLeave={() => isRecording && onStopRecording()}
         onTouchStart={onStartRecording}
         onTouchEnd={onStopRecording}
-        className={`shrink-0 rounded px-3 py-2 text-sm text-white ${
-          isRecording ? "bg-red-600" : "bg-neutral-700"
+        aria-label={isRecording ? "Yazını buraxın" : "Səsli sual verin"}
+        className={`flex shrink-0 items-center justify-center rounded-full p-2.5 transition ${
+          isRecording
+            ? "bg-margin text-white"
+            : "border border-ink-soft/30 bg-surface text-ink hover:border-margin hover:text-margin"
         }`}
       >
-        {isRecording ? "Buraxın" : "Səs"}
+        {isRecording ? <Square size={17} /> : <Mic size={17} />}
       </button>
       <button
         onClick={onSend}
         disabled={!inputText.trim()}
-        className="shrink-0 rounded bg-neutral-800 px-3 py-2 text-sm text-white disabled:opacity-40"
+        aria-label="Göndər"
+        className="flex shrink-0 items-center justify-center rounded-full bg-highlight p-2.5 text-highlight-ink transition disabled:opacity-40"
       >
-        Göndər
+        <Send size={17} />
       </button>
     </div>
   );

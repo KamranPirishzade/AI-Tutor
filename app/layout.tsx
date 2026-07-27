@@ -1,16 +1,22 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Karla, IBM_Plex_Mono } from "next/font/google";
 import { Providers } from "./providers";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const displayFont = Bricolage_Grotesque({
+  variable: "--font-display",
+  subsets: ["latin", "latin-ext"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const bodyFont = Karla({
+  variable: "--font-body",
+  subsets: ["latin", "latin-ext"],
+});
+
+const monoFont = IBM_Plex_Mono({
+  variable: "--font-mono",
+  weight: ["400", "500"],
+  subsets: ["latin", "latin-ext"],
 });
 
 export const metadata: Metadata = {
@@ -26,7 +32,7 @@ export default function RootLayout({
   return (
     <html
       lang="az"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${displayFont.variable} ${bodyFont.variable} ${monoFont.variable} h-full antialiased`}
     >
       <body className="h-full flex flex-col overflow-hidden">
         <Providers>{children}</Providers>

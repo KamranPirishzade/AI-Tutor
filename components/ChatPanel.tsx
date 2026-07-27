@@ -26,8 +26,10 @@ export function ChatPanel({
   } = useChatThread({ currentSlideIndex, currentSlideNarration, deckSummary });
 
   return (
-    <aside className="flex w-80 flex-col gap-3 border-l border-neutral-200 p-4 dark:border-neutral-700">
-      <h2 className="font-semibold">Suallar</h2>
+    <aside className="flex w-80 flex-col gap-3 p-4">
+      <h2 className="font-display text-sm font-semibold tracking-wide text-ink-soft uppercase">
+        Suallar
+      </h2>
       <ChatMessageList
         messages={messages}
         isTranscribing={isTranscribing}
