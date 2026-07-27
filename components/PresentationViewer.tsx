@@ -3,12 +3,23 @@
 import { useEffect, useRef, useState } from "react";
 import type { Slide } from "@/types";
 
-export function PresentationViewer({ slides }: { slides: Slide[] }) {
+export function PresentationViewer({
+  slides,
+  onIndexChange,
+}: {
+  slides: Slide[];
+  onIndexChange?: (index: number) => void;
+}) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const current = slides[currentIndex];
+
+  useEffect(() => {
+    onIndexChange?.(currentIndex);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex]);
 
   useEffect(() => {
     if (!current?.audioBase64 || paused) return;
