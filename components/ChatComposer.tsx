@@ -9,6 +9,7 @@ export function ChatComposer({
   onStartRecording,
   onStopRecording,
   onSend,
+  disabled,
 }: {
   inputText: string;
   onInputTextChange: (text: string) => void;
@@ -16,6 +17,7 @@ export function ChatComposer({
   onStartRecording: () => void;
   onStopRecording: () => void;
   onSend: () => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="flex items-end gap-2">
@@ -28,14 +30,16 @@ export function ChatComposer({
             onSend();
           }
         }}
+        disabled={disabled}
         placeholder="Sualınızı yazın..."
         rows={1}
-        className="flex-1 resize-none rounded-xl border border-paper-line bg-surface p-2.5 text-sm text-ink placeholder:text-ink-soft/70 focus:border-margin focus:outline-none"
+        className="flex-1 resize-none rounded-xl border border-paper-line bg-surface p-2.5 text-sm text-ink placeholder:text-ink-soft/70 focus:border-margin focus:outline-none disabled:opacity-50"
       />
       <button
         onClick={isRecording ? onStopRecording : onStartRecording}
+        disabled={disabled}
         aria-label={isRecording ? "Səs yazısını dayandır" : "Səsli sual verin"}
-        className={`flex shrink-0 items-center justify-center rounded-full p-2.5 transition ${
+        className={`flex shrink-0 items-center justify-center rounded-full p-2.5 transition disabled:pointer-events-none disabled:opacity-40 ${
           isRecording
             ? "bg-margin text-white"
             : "border border-ink-soft/30 bg-surface text-ink hover:border-margin hover:text-margin"
@@ -45,7 +49,7 @@ export function ChatComposer({
       </button>
       <button
         onClick={onSend}
-        disabled={!inputText.trim()}
+        disabled={disabled || !inputText.trim()}
         aria-label="Göndər"
         className="flex shrink-0 items-center justify-center rounded-full bg-highlight p-2.5 text-highlight-ink transition disabled:opacity-40"
       >

@@ -67,7 +67,7 @@ export function useChatThread({
 
   async function handleSend() {
     const questionText = inputText.trim();
-    if (!questionText) return;
+    if (!questionText || isAnswering) return;
 
     onQuestionSent?.();
     setInputText("");

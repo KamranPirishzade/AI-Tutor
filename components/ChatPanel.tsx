@@ -52,6 +52,7 @@ export function ChatPanel({
         onStartRecording={startRecording}
         onStopRecording={stopRecording}
         onSend={handleSend}
+        disabled={isAnswering}
       />
     </aside>
   );

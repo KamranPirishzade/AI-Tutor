@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
+import { TypingIndicator } from "./TypingIndicator";
 import type { Slide } from "@/types";
 
 export function PresentationViewer({
@@ -26,29 +27,33 @@ export function PresentationViewer({
 
   return (
     <div className="flex w-full max-w-3xl flex-col items-center gap-4">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        key={currentSlide.index}
-        src={currentSlide.imageDataUrl}
-        alt={`Slayd ${currentSlide.index + 1}`}
-        className="slide-fade-in w-full rounded-2xl border border-paper-line bg-surface shadow-sm"
-      />
+      <div className="relative w-full">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          key={currentSlide.index}
+          src={currentSlide.imageDataUrl}
+          alt={`Slayd ${currentSlide.index + 1}`}
+          className="slide-fade-in w-full rounded-2xl border border-paper-line bg-surface shadow-sm"
+        />
 
-      <div className="flex flex-wrap items-center gap-3">
-        <span className="font-mono text-xs tracking-wide text-ink-soft">
-          {String(currentSlide.index + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
-        </span>
-
-        {currentSlide.status !== "ready" && (
-          <span className="flex items-center gap-1.5 text-xs text-ink-soft">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-margin" />
-            Slayd hazırlanır...
-          </span>
+        {currentSlide.status !== "ready" && currentSlide.status !== "error" && (
+          <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-surface/60 backdrop-blur-[1px]">
+            <TypingIndicator label="AI slaydı hazırlayır" />
+          </div>
         )}
+
         {currentSlide.status === "error" && (
-          <span className="text-xs text-margin">Xəta: {currentSlide.error}</span>
+          <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-surface/80 p-4">
+            <p className="max-w-xs rounded-2xl border border-margin/40 bg-surface px-4 py-2.5 text-center text-sm text-margin shadow-sm">
+              {currentSlide.error}
+            </p>
+          </div>
         )}
       </div>
+
+      <span className="font-mono text-xs tracking-wide text-ink-soft">
+        {String(currentSlide.index + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
+      </span>
 
       <div className="flex items-center gap-2">
         {slides.length > 1 && (

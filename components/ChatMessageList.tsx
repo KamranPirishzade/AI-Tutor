@@ -21,8 +21,8 @@ export function ChatMessageList({
       {messages.map((message) => (
         <ChatMessageBubble key={message.id} message={message} />
       ))}
-      {isTranscribing && <TypingIndicator label="Səs mətnə çevrilir" />}
-      {isAnswering && <TypingIndicator label="Düşünürəm" />}
+      {isTranscribing && <TypingIndicator label="Səs mətnə çevrilir" className="self-start" />}
+      {isAnswering && <TypingIndicator label="Düşünürəm" className="self-start" />}
     </div>
   );
 }
