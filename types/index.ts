@@ -1,4 +1,4 @@
-export type { Slide, IngestRequest, IngestResponse } from "./slide";
+export type { Slide, SlideTextItem, IngestRequest, IngestResponse } from "./slide";
 export type { TtsRequest, TtsResponse } from "./tts";
 export type {
   TranscribeRequest,

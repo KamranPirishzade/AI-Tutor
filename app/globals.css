@@ -160,3 +160,20 @@ h3 {
     animation: none;
   }
 }
+
+/* On-slide focus highlight — the same marker-stroke language as
+ * .highlighter-mark, drawn directly over the referenced text's real
+ * position on the slide instead of only in the chat bubble. Multiply
+ * blend so it reads like a real highlighter pen over the slide's text. */
+.highlighter-mark-box {
+  background: var(--highlight);
+  mix-blend-mode: multiply;
+  transform-origin: left center;
+  animation: highlighter-stroke-in 0.35s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .highlighter-mark-box {
+    animation: none;
+  }
+}

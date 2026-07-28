@@ -53,6 +53,7 @@ export function useIngestSlides(deckId: string | null, rawSlides: RenderedSlide[
     return {
       index: raw.index,
       imageDataUrl: raw.dataUrl,
+      textItems: raw.textItems,
       narrationText: query.data?.narrationText,
       audioBase64: query.data?.audioBase64,
       status,

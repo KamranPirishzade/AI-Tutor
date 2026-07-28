@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { TypingIndicator } from "./TypingIndicator";
+import { findFocusHighlight } from "@/lib/findFocusHighlight";
 import type { Slide } from "@/types";
 
 export function PresentationViewer({
@@ -13,6 +14,7 @@ export function PresentationViewer({
   goToNext,
   hasPrevious,
   hasNext,
+  activeFocusTerm,
 }: {
   slides: Slide[];
   currentSlide: Slide | undefined;
@@ -22,8 +24,13 @@ export function PresentationViewer({
   goToNext: () => void;
   hasPrevious: boolean;
   hasNext: boolean;
+  activeFocusTerm?: string | null;
 }) {
   if (!currentSlide) return null;
+
+  const highlightBox = activeFocusTerm
+    ? findFocusHighlight(currentSlide.textItems, activeFocusTerm)
+    : null;
 
   return (
     <div className="flex w-full max-w-3xl flex-col items-center gap-4">
@@ -35,6 +42,19 @@ export function PresentationViewer({
           alt={`Slayd ${currentSlide.index + 1}`}
           className="slide-fade-in w-full rounded-2xl border border-paper-line bg-surface shadow-sm"
         />
+
+        {highlightBox && (
+          <div
+            key={activeFocusTerm}
+            className="highlighter-mark-box pointer-events-none absolute rounded-sm"
+            style={{
+              left: `${highlightBox.left * 100}%`,
+              top: `${highlightBox.top * 100}%`,
+              width: `${highlightBox.width * 100}%`,
+              height: `${highlightBox.height * 100}%`,
+            }}
+          />
+        )}
 
         {currentSlide.status !== "ready" && currentSlide.status !== "error" && (
           <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-surface/60 backdrop-blur-[1px]">

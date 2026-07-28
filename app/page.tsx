@@ -28,6 +28,16 @@ export default function Home() {
     hasNext,
   } = useSlideAudioPlayer(slides);
 
+  // A highlight belongs to the slide it was found on — recording which
+  // slide alongside the term means it naturally stops applying once the
+  // view moves to a different slide (auto-advance, manual nav, whatever),
+  // with no separate "clear on change" effect needed.
+  const [focusTerm, setFocusTerm] = useState<{ term: string; slideIndex: number } | null>(null);
+  const activeFocusTerm =
+    focusTerm && currentSlide && focusTerm.slideIndex === currentSlide.index
+      ? focusTerm.term
+      : null;
+
   const deckSummary = useMemo(
     () =>
       slides
@@ -63,6 +73,7 @@ export default function Home() {
           goToNext={goToNext}
           hasPrevious={hasPrevious}
           hasNext={hasNext}
+          activeFocusTerm={activeFocusTerm}
         />
       </div>
       <MarginRule />
@@ -72,6 +83,9 @@ export default function Home() {
         deckSummary={deckSummary}
         onQuestionSent={pauseNarration}
         onAnswerPlaybackEnd={resumeNarration}
+        onFocusTermChange={(term) =>
+          setFocusTerm(term && currentSlide ? { term, slideIndex: currentSlide.index } : null)
+        }
       />
     </main>
   );
