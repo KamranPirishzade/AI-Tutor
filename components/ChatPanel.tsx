@@ -10,14 +10,14 @@ export function ChatPanel({
   deckSummary,
   onQuestionSent,
   onAnswerPlaybackEnd,
-  onFocusTermChange,
+  onFocusChange,
 }: {
   currentSlideIndex: number;
   currentSlideNarration: string;
   deckSummary: string;
   onQuestionSent?: () => void;
   onAnswerPlaybackEnd?: () => void;
-  onFocusTermChange?: (focusTerm: string | null) => void;
+  onFocusChange?: (focus: { term: string | null; relevantSlideNumber: number | null }) => void;
 }) {
   const {
     messages,
@@ -35,7 +35,7 @@ export function ChatPanel({
     deckSummary,
     onQuestionSent,
     onAnswerPlaybackEnd,
-    onFocusTermChange,
+    onFocusChange,
   });
 
   return (

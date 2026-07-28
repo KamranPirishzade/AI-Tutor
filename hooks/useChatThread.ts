@@ -17,9 +17,10 @@ interface ChatThreadContext {
   /** Called once the answer has finished playing (or failed to play at
    * all) — the caller's cue that it's safe to resume the narration. */
   onAnswerPlaybackEnd?: () => void;
-  /** Called with the latest answer's focusTerm (or null) so the caller can
-   * highlight it on the slide — cleared the moment a new question starts. */
-  onFocusTermChange?: (focusTerm: string | null) => void;
+  /** Called with the latest answer's focus term and which slide it's
+   * actually about, so the caller can navigate there and highlight it —
+   * cleared the moment a new question starts. */
+  onFocusChange?: (focus: { term: string | null; relevantSlideNumber: number | null }) => void;
 }
 
 /** Owns the entire chat feature: the message thread, the text input, both
@@ -32,7 +33,7 @@ export function useChatThread({
   deckSummary,
   onQuestionSent,
   onAnswerPlaybackEnd,
-  onFocusTermChange,
+  onFocusChange,
 }: ChatThreadContext) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
@@ -74,7 +75,7 @@ export function useChatThread({
     if (!questionText || isAnswering) return;
 
     onQuestionSent?.();
-    onFocusTermChange?.(null);
+    onFocusChange?.({ term: null, relevantSlideNumber: null });
     setInputText("");
     setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", text: questionText }]);
 
@@ -86,7 +87,10 @@ export function useChatThread({
         deckSummary,
       });
       setMessages((prev) => [...prev, assistantMessage]);
-      onFocusTermChange?.(assistantMessage.focusTerm ?? null);
+      onFocusChange?.({
+        term: assistantMessage.focusTerm ?? null,
+        relevantSlideNumber: assistantMessage.relevantSlideNumber ?? null,
+      });
       playAnswer(assistantMessage.audioBase64);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Suala cavab verərkən xəta baş verdi.");

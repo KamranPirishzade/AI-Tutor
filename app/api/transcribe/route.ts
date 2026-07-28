@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { transcribeAudio } from "@/lib/gemini";
 import { withRetry } from "@/lib/retry";
+import { describeApiError } from "@/lib/describeApiError";
 import type { TranscribeRequest, TranscribeResponse } from "@/types";
 
 export const maxDuration = 30;
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("[/api/transcribe]", err);
     return NextResponse.json(
-      { error: "Səsi mətnə çevirərkən xəta baş verdi. Yenidən cəhd edin." },
+      { error: describeApiError(err, "Səsi mətnə çevirərkən xəta baş verdi. Yenidən cəhd edin.") },
       { status: 500 }
     );
   }

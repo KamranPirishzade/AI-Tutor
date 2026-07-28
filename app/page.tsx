@@ -72,29 +72,40 @@ export default function Home() {
     [slides]
   );
 
-  function handleFocusTermChange(term: string | null) {
-    if (!term || !currentSlide) {
+  function handleFocusChange({
+    term,
+    relevantSlideNumber,
+  }: {
+    term: string | null;
+    relevantSlideNumber: number | null;
+  }) {
+    if (!currentSlide) {
       setFocusTerm(null);
       return;
     }
 
-    // Check the current slide first, then every other slide in order.
-    const searchOrder = [currentSlide, ...slides.filter((s) => s.index !== currentSlide.index)];
-    const matchedSlide = searchOrder.find((s) => findFocusHighlight(s.textItems, term) !== null);
+    // The model names which slide it means directly (it has every slide's
+    // narration via the deck summary) — far more reliable than searching
+    // PDF text for a literal match, which fails whenever the relevant
+    // content is an image with nothing matching to find.
+    const targetSlide =
+      relevantSlideNumber != null ? (slides[relevantSlideNumber - 1] ?? currentSlide) : currentSlide;
 
-    if (!matchedSlide) {
-      setFocusTerm(null);
-      return;
-    }
-
-    if (matchedSlide.index !== currentSlide.index) {
+    if (targetSlide.index !== currentSlide.index) {
       // Remember the very first spot we were displaced from, not
       // wherever we happened to be after a previous jump.
       setReturnToSlideIndex((prev) => prev ?? currentSlide.index);
-      jumpToSlide(matchedSlide.index);
+      jumpToSlide(targetSlide.index);
     }
 
-    setFocusTerm({ term, slideIndex: matchedSlide.index });
+    // The highlight box position is still best-effort text matching — if
+    // the term isn't literally findable there, we've still navigated to
+    // the right slide, just without a box drawn on it.
+    if (term && findFocusHighlight(targetSlide.textItems, term)) {
+      setFocusTerm({ term, slideIndex: targetSlide.index });
+    } else {
+      setFocusTerm(null);
+    }
   }
 
   function handleAnswerPlaybackEnd() {
@@ -162,7 +173,7 @@ export default function Home() {
         deckSummary={deckSummary}
         onQuestionSent={pauseNarration}
         onAnswerPlaybackEnd={handleAnswerPlaybackEnd}
-        onFocusTermChange={handleFocusTermChange}
+        onFocusChange={handleFocusChange}
       />
     </main>
   );

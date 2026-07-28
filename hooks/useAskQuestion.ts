@@ -28,7 +28,10 @@ export function useAskQuestion() {
         currentSlide: { index: currentSlideIndex, narrationText: currentSlideNarration },
         deckSummary,
       };
-      const { answerText, focusTerm } = await postJson<ChatResponse>("/api/chat", chatRequest);
+      const { answerText, focusTerm, relevantSlideNumber } = await postJson<ChatResponse>(
+        "/api/chat",
+        chatRequest
+      );
 
       const ttsRequest: TtsRequest = { text: answerText };
       const { audioBase64 } = await postJson<TtsResponse>("/api/tts", ttsRequest);
@@ -38,6 +41,7 @@ export function useAskQuestion() {
         role: "assistant",
         text: answerText,
         focusTerm,
+        relevantSlideNumber,
         audioBase64,
       };
     },

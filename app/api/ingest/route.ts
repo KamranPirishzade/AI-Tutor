@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateNarration } from "@/lib/gemini";
 import { withRetry } from "@/lib/retry";
+import { describeApiError } from "@/lib/describeApiError";
 import type { IngestRequest, IngestResponse } from "@/types";
 
 export const maxDuration = 30;
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("[/api/ingest]", err);
     return NextResponse.json(
-      { error: "Slaydı izah edərkən xəta baş verdi. Yenidən cəhd edin." },
+      { error: describeApiError(err, "Slaydı izah edərkən xəta baş verdi. Yenidən cəhd edin.") },
       { status: 500 }
     );
   }

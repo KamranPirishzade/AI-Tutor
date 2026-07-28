@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { synthesizeSpeech } from "@/lib/gemini";
 import { pcmToWav } from "@/lib/wav";
 import { withRetry } from "@/lib/retry";
+import { describeApiError } from "@/lib/describeApiError";
 import type { TtsRequest, TtsResponse } from "@/types";
 
 export const maxDuration = 30;
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("[/api/tts]", err);
     return NextResponse.json(
-      { error: "Səsləndirmə zamanı xəta baş verdi. Yenidən cəhd edin." },
+      { error: describeApiError(err, "Səsləndirmə zamanı xəta baş verdi. Yenidən cəhd edin.") },
       { status: 500 }
     );
   }
