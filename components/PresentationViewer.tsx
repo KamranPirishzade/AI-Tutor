@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pause, Play, Undo2 } from "lucide-react";
 import { TypingIndicator } from "./TypingIndicator";
 import { findFocusHighlight } from "@/lib/findFocusHighlight";
 import type { Slide } from "@/types";
@@ -15,6 +15,7 @@ export function PresentationViewer({
   hasPrevious,
   hasNext,
   activeFocusTerm,
+  returnToSlideIndex,
 }: {
   slides: Slide[];
   currentSlide: Slide | undefined;
@@ -25,6 +26,7 @@ export function PresentationViewer({
   hasPrevious: boolean;
   hasNext: boolean;
   activeFocusTerm?: string | null;
+  returnToSlideIndex?: number | null;
 }) {
   if (!currentSlide) return null;
 
@@ -89,11 +91,27 @@ export function PresentationViewer({
 
         <button
           onClick={togglePause}
-          aria-label={isPaused ? "Davam et" : "Pauza"}
+          aria-label={
+            returnToSlideIndex != null
+              ? `Slayd ${returnToSlideIndex + 1}-ə qayıt`
+              : isPaused
+                ? "Davam et"
+                : "Pauza"
+          }
           className="flex items-center gap-1.5 rounded-full border border-ink-soft/30 bg-surface px-4 py-1.5 text-sm text-ink transition hover:border-margin hover:text-margin"
         >
-          {isPaused ? <Play size={15} /> : <Pause size={15} />}
-          {isPaused ? "Davam et" : "Pauza"}
+          {returnToSlideIndex != null ? (
+            <Undo2 size={15} />
+          ) : isPaused ? (
+            <Play size={15} />
+          ) : (
+            <Pause size={15} />
+          )}
+          {returnToSlideIndex != null
+            ? `Slayd ${returnToSlideIndex + 1}-ə qayıt`
+            : isPaused
+              ? "Davam et"
+              : "Pauza"}
         </button>
 
         {slides.length > 1 && (

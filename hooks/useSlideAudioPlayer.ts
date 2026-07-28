@@ -46,9 +46,17 @@ export function useSlideAudioPlayer(slides: Slide[]) {
     setIsPaused((paused) => !paused);
   }
 
-  function goToSlide(index: number) {
+  function goToSlideAndResume(index: number) {
     if (index < 0 || index >= slides.length) return;
     setIsPaused(false);
+    setCurrentIndex(index);
+  }
+
+  /** Changes the visible slide without touching the paused state — used
+   * when jumping to a different slide for a cross-reference during a chat
+   * answer, where narration must stay silent regardless. */
+  function jumpToSlide(index: number) {
+    if (index < 0 || index >= slides.length) return;
     setCurrentIndex(index);
   }
 
@@ -58,8 +66,9 @@ export function useSlideAudioPlayer(slides: Slide[]) {
     togglePause,
     pause: () => setIsPaused(true),
     resume: () => setIsPaused(false),
-    goToPrevious: () => goToSlide(currentIndex - 1),
-    goToNext: () => goToSlide(currentIndex + 1),
+    goToPrevious: () => goToSlideAndResume(currentIndex - 1),
+    goToNext: () => goToSlideAndResume(currentIndex + 1),
+    jumpToSlide,
     hasPrevious: currentIndex > 0,
     hasNext: currentIndex + 1 < slides.length,
   };
