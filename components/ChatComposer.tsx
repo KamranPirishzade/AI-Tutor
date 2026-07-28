@@ -33,12 +33,8 @@ export function ChatComposer({
         className="flex-1 resize-none rounded-xl border border-paper-line bg-surface p-2.5 text-sm text-ink placeholder:text-ink-soft/70 focus:border-margin focus:outline-none"
       />
       <button
-        onMouseDown={onStartRecording}
-        onMouseUp={onStopRecording}
-        onMouseLeave={() => isRecording && onStopRecording()}
-        onTouchStart={onStartRecording}
-        onTouchEnd={onStopRecording}
-        aria-label={isRecording ? "Yazını buraxın" : "Səsli sual verin"}
+        onClick={isRecording ? onStopRecording : onStartRecording}
+        aria-label={isRecording ? "Səs yazısını dayandır" : "Səsli sual verin"}
         className={`flex shrink-0 items-center justify-center rounded-full p-2.5 transition ${
           isRecording
             ? "bg-margin text-white"

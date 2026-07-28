@@ -6,6 +6,7 @@ import { PresentationViewer } from "@/components/PresentationViewer";
 import { ChatPanel } from "@/components/ChatPanel";
 import { MarginRule } from "@/components/MarginRule";
 import { useIngestSlides } from "@/hooks/useIngestSlides";
+import { useSlideAudioPlayer } from "@/hooks/useSlideAudioPlayer";
 import type { RenderedSlide } from "@/lib/pdfRender";
 
 const SUMMARY_CHARS_PER_SLIDE = 200;
@@ -13,9 +14,19 @@ const SUMMARY_CHARS_PER_SLIDE = 200;
 export default function Home() {
   const [deckId, setDeckId] = useState<string | null>(null);
   const [rawSlides, setRawSlides] = useState<RenderedSlide[]>([]);
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
   const { slides, readyCount, totalCount } = useIngestSlides(deckId, rawSlides);
+  const {
+    currentSlide,
+    isPaused,
+    togglePause,
+    pause: pauseNarration,
+    resume: resumeNarration,
+    goToPrevious,
+    goToNext,
+    hasPrevious,
+    hasNext,
+  } = useSlideAudioPlayer(slides);
 
   const deckSummary = useMemo(
     () =>
@@ -37,21 +48,30 @@ export default function Home() {
     );
   }
 
-  const currentSlide = slides[currentSlideIndex];
-
   return (
     <main className="grid-paper flex min-h-0 flex-1">
       <div className="flex min-h-0 flex-1 flex-col items-center justify-start gap-4 overflow-y-auto p-8">
         <p className="font-mono text-xs tracking-wide text-ink-soft">
           {readyCount}/{totalCount} slayd hazır
         </p>
-        <PresentationViewer slides={slides} onIndexChange={setCurrentSlideIndex} />
+        <PresentationViewer
+          slides={slides}
+          currentSlide={currentSlide}
+          isPaused={isPaused}
+          togglePause={togglePause}
+          goToPrevious={goToPrevious}
+          goToNext={goToNext}
+          hasPrevious={hasPrevious}
+          hasNext={hasNext}
+        />
       </div>
       <MarginRule />
       <ChatPanel
-        currentSlideIndex={currentSlideIndex}
+        currentSlideIndex={currentSlide?.index ?? 0}
         currentSlideNarration={currentSlide?.narrationText ?? ""}
         deckSummary={deckSummary}
+        onQuestionSent={pauseNarration}
+        onAnswerPlaybackEnd={resumeNarration}
       />
     </main>
   );

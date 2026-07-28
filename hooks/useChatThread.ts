@@ -11,18 +11,41 @@ interface ChatThreadContext {
   currentSlideIndex: number;
   currentSlideNarration: string;
   deckSummary: string;
+  /** Called the moment a question is sent — lets the caller silence the
+   * slide narration so it doesn't play over the answer. */
+  onQuestionSent?: () => void;
+  /** Called once the answer has finished playing (or failed to play at
+   * all) — the caller's cue that it's safe to resume the narration. */
+  onAnswerPlaybackEnd?: () => void;
 }
 
-/** Owns the entire chat feature: the message thread, the text input, and
- * both ways a message gets composed — typed directly, or recorded and
- * transcribed into the same input box for review before sending. */
-export function useChatThread(context: ChatThreadContext) {
+/** Owns the entire chat feature: the message thread, the text input, both
+ * ways a message gets composed — typed directly, or recorded and
+ * transcribed into the same input box for review before sending — and
+ * playback of the answer's audio. */
+export function useChatThread({
+  currentSlideIndex,
+  currentSlideNarration,
+  deckSummary,
+  onQuestionSent,
+  onAnswerPlaybackEnd,
+}: ChatThreadContext) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
 
   const { isRecording, startRecording, stopRecording } = useVoiceRecorder();
   const { transcribeVoice, isTranscribing } = useTranscribeVoice();
   const { askQuestion, isAnswering } = useAskQuestion();
+
+  function playAnswer(audioBase64: string | undefined) {
+    if (!audioBase64) {
+      onAnswerPlaybackEnd?.();
+      return;
+    }
+    const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
+    audio.onended = () => onAnswerPlaybackEnd?.();
+    audio.play().catch(() => onAnswerPlaybackEnd?.());
+  }
 
   async function handleStartRecording() {
     try {
@@ -46,14 +69,22 @@ export function useChatThread(context: ChatThreadContext) {
     const questionText = inputText.trim();
     if (!questionText) return;
 
+    onQuestionSent?.();
     setInputText("");
     setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", text: questionText }]);
 
     try {
-      const assistantMessage = await askQuestion({ questionText, ...context });
+      const assistantMessage = await askQuestion({
+        questionText,
+        currentSlideIndex,
+        currentSlideNarration,
+        deckSummary,
+      });
       setMessages((prev) => [...prev, assistantMessage]);
+      playAnswer(assistantMessage.audioBase64);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Suala cavab verərkən xəta baş verdi.");
+      onAnswerPlaybackEnd?.();
     }
   }
 

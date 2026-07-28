@@ -10,19 +10,14 @@ const AUDIO_FADE_MS = 220;
  * slide when playback ends. Also supports jumping to an arbitrary slide
  * (manual next/previous) — the outgoing slide's audio fades out while the
  * incoming one fades in, so a manual switch feels soft rather than an
- * abrupt cut. Reports the current index up to the caller (via
- * onIndexChange) so other parts of the UI, like the chat panel, can know
- * which slide is currently showing. */
-export function useSlideAudioPlayer(slides: Slide[], onIndexChange?: (index: number) => void) {
+ * abrupt cut. Exposes pause/resume so a caller outside this hook (e.g. the
+ * chat feature, when the user asks a question) can silence the narration
+ * without it fighting for playback with something else. */
+export function useSlideAudioPlayer(slides: Slide[]) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
   const currentSlide = slides[currentIndex];
-
-  useEffect(() => {
-    onIndexChange?.(currentIndex);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIndex]);
 
   useEffect(() => {
     if (!currentSlide?.audioBase64 || isPaused) return;
@@ -61,6 +56,8 @@ export function useSlideAudioPlayer(slides: Slide[], onIndexChange?: (index: num
     currentSlide,
     isPaused,
     togglePause,
+    pause: () => setIsPaused(true),
+    resume: () => setIsPaused(false),
     goToPrevious: () => goToSlide(currentIndex - 1),
     goToNext: () => goToSlide(currentIndex + 1),
     hasPrevious: currentIndex > 0,

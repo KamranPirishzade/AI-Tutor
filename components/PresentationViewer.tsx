@@ -1,19 +1,27 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
-import { useSlideAudioPlayer } from "@/hooks/useSlideAudioPlayer";
 import type { Slide } from "@/types";
 
 export function PresentationViewer({
   slides,
-  onIndexChange,
+  currentSlide,
+  isPaused,
+  togglePause,
+  goToPrevious,
+  goToNext,
+  hasPrevious,
+  hasNext,
 }: {
   slides: Slide[];
-  onIndexChange?: (index: number) => void;
+  currentSlide: Slide | undefined;
+  isPaused: boolean;
+  togglePause: () => void;
+  goToPrevious: () => void;
+  goToNext: () => void;
+  hasPrevious: boolean;
+  hasNext: boolean;
 }) {
-  const { currentSlide, isPaused, togglePause, goToPrevious, goToNext, hasPrevious, hasNext } =
-    useSlideAudioPlayer(slides, onIndexChange);
-
   if (!currentSlide) return null;
 
   return (

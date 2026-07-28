@@ -8,10 +8,14 @@ export function ChatPanel({
   currentSlideIndex,
   currentSlideNarration,
   deckSummary,
+  onQuestionSent,
+  onAnswerPlaybackEnd,
 }: {
   currentSlideIndex: number;
   currentSlideNarration: string;
   deckSummary: string;
+  onQuestionSent?: () => void;
+  onAnswerPlaybackEnd?: () => void;
 }) {
   const {
     messages,
@@ -23,7 +27,13 @@ export function ChatPanel({
     startRecording,
     stopRecording,
     handleSend,
-  } = useChatThread({ currentSlideIndex, currentSlideNarration, deckSummary });
+  } = useChatThread({
+    currentSlideIndex,
+    currentSlideNarration,
+    deckSummary,
+    onQuestionSent,
+    onAnswerPlaybackEnd,
+  });
 
   return (
     <aside className="flex w-80 flex-col gap-3 p-4">

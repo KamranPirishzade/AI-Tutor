@@ -11,8 +11,10 @@ interface AskQuestionInput {
   deckSummary: string;
 }
 
-/** Sends a text question to Gemini and speaks the answer aloud. Used for both
- * typed and voice-transcribed questions, since by this point it's just text. */
+/** Sends a text question to Gemini and returns the spoken answer's text and
+ * audio. Used for both typed and voice-transcribed questions, since by this
+ * point it's just text. Doesn't play the audio itself — see useChatThread,
+ * which coordinates playback with the slide narration so they don't overlap. */
 export function useAskQuestion() {
   const mutation = useMutation({
     mutationFn: async ({
@@ -30,8 +32,6 @@ export function useAskQuestion() {
 
       const ttsRequest: TtsRequest = { text: answerText };
       const { audioBase64 } = await postJson<TtsResponse>("/api/tts", ttsRequest);
-
-      new Audio(`data:audio/wav;base64,${audioBase64}`).play().catch(() => {});
 
       return {
         id: crypto.randomUUID(),
