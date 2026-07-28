@@ -9,11 +9,22 @@ export interface SlideTextItem {
   height: number;
 }
 
+/** A term the narration discusses, with its approximate position through
+ * the narration text (0 = start, 1 = end) — NOT synced to actual audio
+ * timing (Gemini TTS gives no word-level timestamps), just an estimate
+ * based on where the term falls in the narration script. Used to switch
+ * the on-slide highlight roughly along with playback. */
+export interface NarrationFocusPoint {
+  term: string;
+  positionFraction: number;
+}
+
 export interface Slide {
   index: number;
   imageDataUrl: string;
   textItems: SlideTextItem[];
   narrationText?: string;
+  focusPoints: NarrationFocusPoint[];
   audioBase64?: string;
   status: "pending" | "narrating" | "synthesizing" | "ready" | "error";
   error?: string;
@@ -28,4 +39,5 @@ export interface IngestRequest {
 
 export interface IngestResponse {
   narrationText: string;
+  focusPoints: NarrationFocusPoint[];
 }

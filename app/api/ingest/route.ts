@@ -9,10 +9,10 @@ export async function POST(request: Request) {
   const body = (await request.json()) as IngestRequest;
 
   try {
-    const narrationText = await withRetry(() =>
+    const { narrationText, focusPoints } = await withRetry(() =>
       generateNarration(body.imageBase64, body.mimeType, body.slideIndex, body.totalSlides)
     );
-    const response: IngestResponse = { narrationText };
+    const response: IngestResponse = { narrationText, focusPoints };
     return NextResponse.json(response);
   } catch (err) {
     console.error("[/api/ingest]", err);

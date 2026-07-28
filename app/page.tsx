@@ -20,6 +20,7 @@ export default function Home() {
   const {
     currentSlide,
     isPaused,
+    narrationFocusTerm,
     togglePause,
     pause: pauseNarration,
     resume: resumeNarration,
@@ -35,10 +36,14 @@ export default function Home() {
   // view moves to a different slide, with no separate "clear on change"
   // effect needed.
   const [focusTerm, setFocusTerm] = useState<{ term: string; slideIndex: number } | null>(null);
-  const activeFocusTerm =
+  const chatFocusTerm =
     focusTerm && currentSlide && focusTerm.slideIndex === currentSlide.index
       ? focusTerm.term
       : null;
+
+  // A chat answer is a deliberate, explicit question — it should win over
+  // the passive narration highlight whenever both would apply.
+  const activeFocusTerm = chatFocusTerm ?? narrationFocusTerm;
 
   // Set when a chat answer's focus term lives on a different slide than the
   // one being viewed and we jump there automatically — records where to

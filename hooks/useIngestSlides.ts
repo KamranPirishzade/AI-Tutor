@@ -5,7 +5,14 @@ import { useQueries } from "@tanstack/react-query";
 import { postJson } from "@/lib/api";
 import { createSemaphore } from "@/lib/semaphore";
 import type { RenderedSlide } from "@/lib/pdfRender";
-import type { IngestRequest, IngestResponse, TtsRequest, TtsResponse, Slide } from "@/types";
+import type {
+  IngestRequest,
+  IngestResponse,
+  TtsRequest,
+  TtsResponse,
+  Slide,
+  NarrationFocusPoint,
+} from "@/types";
 
 // Free-tier Gemini RPM is low; each slide needs 2 sequential calls
 // (narrate, then TTS), so a naive Promise.all over a whole deck would
@@ -15,7 +22,7 @@ const MAX_CONCURRENT_SLIDE_CHAINS = 2;
 async function narrateAndSynthesizeSlide(
   slide: RenderedSlide,
   totalSlides: number
-): Promise<{ narrationText: string; audioBase64: string }> {
+): Promise<{ narrationText: string; focusPoints: NarrationFocusPoint[]; audioBase64: string }> {
   const imageBase64 = slide.dataUrl.split(",")[1];
 
   const ingestRequest: IngestRequest = {
@@ -24,12 +31,15 @@ async function narrateAndSynthesizeSlide(
     slideIndex: slide.index,
     totalSlides,
   };
-  const { narrationText } = await postJson<IngestResponse>("/api/ingest", ingestRequest);
+  const { narrationText, focusPoints } = await postJson<IngestResponse>(
+    "/api/ingest",
+    ingestRequest
+  );
 
   const ttsRequest: TtsRequest = { text: narrationText };
   const { audioBase64 } = await postJson<TtsResponse>("/api/tts", ttsRequest);
 
-  return { narrationText, audioBase64 };
+  return { narrationText, focusPoints, audioBase64 };
 }
 
 export function useIngestSlides(deckId: string | null, rawSlides: RenderedSlide[]) {
@@ -55,6 +65,7 @@ export function useIngestSlides(deckId: string | null, rawSlides: RenderedSlide[
       imageDataUrl: raw.dataUrl,
       textItems: raw.textItems,
       narrationText: query.data?.narrationText,
+      focusPoints: query.data?.focusPoints ?? [],
       audioBase64: query.data?.audioBase64,
       status,
       error: query.error instanceof Error ? query.error.message : undefined,
