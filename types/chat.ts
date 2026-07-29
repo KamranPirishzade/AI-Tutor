@@ -16,8 +16,14 @@ export interface ChatRequest {
   deckSummary: string;
 }
 
-export interface ChatResponse {
+export interface ChatFocusRequest {
+  questionText: string;
   answerText: string;
+  currentSlideNarration: string;
+  deckSummary: string;
+}
+
+export interface ChatFocusInfo {
   focusTerm: string | null;
   /** 1-indexed slide number (matching the "Slayd N" labels in the deck
    * summary) the answer is actually about, or null if it's just about the

@@ -37,6 +37,11 @@ export function useChatThread({
 }: ChatThreadContext) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState("");
+  // True only while waiting for the first chunk of a streamed answer — once
+  // text starts arriving, the growing bubble itself is the "it's working"
+  // signal, so the separate typing indicator would be redundant/misleading
+  // during the (usually short) TTS/focus-info wait that follows.
+  const [isThinking, setIsThinking] = useState(false);
 
   const { isRecording, startRecording, stopRecording } = useVoiceRecorder();
   const { transcribeVoice, isTranscribing } = useTranscribeVoice();
@@ -78,6 +83,26 @@ export function useChatThread({
     onFocusChange?.({ term: null, relevantSlideNumber: null });
     setInputText("");
     setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "user", text: questionText }]);
+    setIsThinking(true);
+
+    // The assistant bubble itself isn't added until the first chunk of the
+    // streamed answer arrives (see handleAnswerChunk) — until then, the
+    // typing indicator alone shows something is happening.
+    const assistantMessageId = crypto.randomUUID();
+    let assistantMessageAdded = false;
+
+    function handleAnswerChunk(accumulatedText: string) {
+      setIsThinking(false);
+      setMessages((prev) => {
+        if (!assistantMessageAdded) {
+          assistantMessageAdded = true;
+          return [...prev, { id: assistantMessageId, role: "assistant", text: accumulatedText }];
+        }
+        return prev.map((message) =>
+          message.id === assistantMessageId ? { ...message, text: accumulatedText } : message
+        );
+      });
+    }
 
     try {
       const assistantMessage = await askQuestion({
@@ -85,8 +110,13 @@ export function useChatThread({
         currentSlideIndex,
         currentSlideNarration,
         deckSummary,
+        onTextChunk: handleAnswerChunk,
       });
-      setMessages((prev) => [...prev, assistantMessage]);
+      setMessages((prev) =>
+        prev.map((message) =>
+          message.id === assistantMessageId ? { ...assistantMessage, id: assistantMessageId } : message
+        )
+      );
       onFocusChange?.({
         term: assistantMessage.focusTerm ?? null,
         relevantSlideNumber: assistantMessage.relevantSlideNumber ?? null,
@@ -94,7 +124,10 @@ export function useChatThread({
       playAnswer(assistantMessage.audioBase64);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Suala cavab verərkən xəta baş verdi.");
+      setMessages((prev) => prev.filter((message) => message.id !== assistantMessageId));
       onAnswerPlaybackEnd?.();
+    } finally {
+      setIsThinking(false);
     }
   }
 
@@ -104,6 +137,7 @@ export function useChatThread({
     setInputText,
     isRecording,
     isTranscribing,
+    isThinking,
     isAnswering,
     startRecording: handleStartRecording,
     stopRecording: handleStopRecording,

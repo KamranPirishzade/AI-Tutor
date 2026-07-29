@@ -10,6 +10,7 @@ export type {
   TranscribeRequest,
   TranscribeResponse,
   ChatRequest,
-  ChatResponse,
+  ChatFocusRequest,
+  ChatFocusInfo,
   ChatMessage,
 } from "./chat";

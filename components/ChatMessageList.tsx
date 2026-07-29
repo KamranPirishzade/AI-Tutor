@@ -5,11 +5,11 @@ import type { ChatMessage } from "@/types";
 export function ChatMessageList({
   messages,
   isTranscribing,
-  isAnswering,
+  isThinking,
 }: {
   messages: ChatMessage[];
   isTranscribing: boolean;
-  isAnswering: boolean;
+  isThinking: boolean;
 }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
@@ -22,7 +22,7 @@ export function ChatMessageList({
         <ChatMessageBubble key={message.id} message={message} />
       ))}
       {isTranscribing && <TypingIndicator label="Səs mətnə çevrilir" className="self-start" />}
-      {isAnswering && <TypingIndicator label="Düşünürəm" className="self-start" />}
+      {isThinking && <TypingIndicator label="Düşünürəm" className="self-start" />}
     </div>
   );
 }

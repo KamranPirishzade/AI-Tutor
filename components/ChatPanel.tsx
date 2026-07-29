@@ -25,6 +25,7 @@ export function ChatPanel({
     setInputText,
     isRecording,
     isTranscribing,
+    isThinking,
     isAnswering,
     startRecording,
     stopRecording,
@@ -46,7 +47,7 @@ export function ChatPanel({
       <ChatMessageList
         messages={messages}
         isTranscribing={isTranscribing}
-        isAnswering={isAnswering}
+        isThinking={isThinking}
       />
       <ChatComposer
         inputText={inputText}
