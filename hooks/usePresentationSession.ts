@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useSlideAudioPlayer } from "./useSlideAudioPlayer";
 import { findFocusHighlight, type HighlightBox } from "@/lib/findFocusHighlight";
 import type { Slide } from "@/types";
@@ -33,10 +33,6 @@ export function usePresentationSession(slides: Slide[]) {
     activeFocusTerm && currentSlide ? findFocusHighlight(currentSlide.textItems, activeFocusTerm) : null;
 
   const [returnToSlideIndex, setReturnToSlideIndex] = useState<number | null>(null);
-  const returnToSlideIndexRef = useRef(returnToSlideIndex);
-  useEffect(() => {
-    returnToSlideIndexRef.current = returnToSlideIndex;
-  }, [returnToSlideIndex]);
 
   function handleFocusChange({ term, relevantSlideNumber }: FocusChangeInput) {
     if (!currentSlide) {
@@ -56,12 +52,6 @@ export function usePresentationSession(slides: Slide[]) {
       setFocusTerm({ term, slideIndex: targetSlide.index });
     } else {
       setFocusTerm(null);
-    }
-  }
-
-  function handleAnswerPlaybackEnd() {
-    if (returnToSlideIndexRef.current === null) {
-      resume();
     }
   }
 
@@ -98,6 +88,5 @@ export function usePresentationSession(slides: Slide[]) {
     goToPrevious: handleGoToPrevious,
     goToNext: handleGoToNext,
     onFocusChange: handleFocusChange,
-    onAnswerPlaybackEnd: handleAnswerPlaybackEnd,
   };
 }

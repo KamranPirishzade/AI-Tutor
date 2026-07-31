@@ -28,7 +28,6 @@ export default function Home() {
     goToPrevious,
     goToNext,
     onFocusChange,
-    onAnswerPlaybackEnd,
   } = usePresentationSession(slides);
 
   if (!deckId) {
@@ -68,7 +67,6 @@ export default function Home() {
         currentSlideNarration={currentSlide?.narrationText ?? ""}
         deckSummary={buildDeckSummary(slides)}
         onQuestionSent={pauseNarration}
-        onAnswerPlaybackEnd={onAnswerPlaybackEnd}
         onFocusChange={onFocusChange}
       />
     </main>

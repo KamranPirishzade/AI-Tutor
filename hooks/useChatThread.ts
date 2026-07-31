@@ -14,7 +14,6 @@ interface ChatThreadContext {
   currentSlideNarration: string;
   deckSummary: string;
   onQuestionSent?: () => void;
-  onAnswerPlaybackEnd?: () => void;
   onFocusChange?: (focus: { term: string | null; relevantSlideNumber: number | null }) => void;
 }
 
@@ -23,7 +22,6 @@ export function useChatThread({
   currentSlideNarration,
   deckSummary,
   onQuestionSent,
-  onAnswerPlaybackEnd,
   onFocusChange,
 }: ChatThreadContext) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -36,13 +34,9 @@ export function useChatThread({
   const { askQuestion, isAnswering } = useAskQuestion();
 
   function playAnswer(audioBase64: string | undefined) {
-    if (!audioBase64) {
-      onAnswerPlaybackEnd?.();
-      return;
-    }
+    if (!audioBase64) return;
     const audio = new Audio(toAudioDataUri(audioBase64));
-    audio.onended = () => onAnswerPlaybackEnd?.();
-    audio.play().catch(() => onAnswerPlaybackEnd?.());
+    audio.play().catch(() => {});
   }
 
   async function handleStartRecording() {
@@ -112,7 +106,6 @@ export function useChatThread({
     } catch (err) {
       toast.error(err instanceof Error ? err.message : MESSAGES.chat.answerFailed);
       setMessages((prev) => prev.filter((message) => message.id !== assistantMessageId));
-      onAnswerPlaybackEnd?.();
     } finally {
       setIsThinking(false);
       setIsPreparingAudio(false);
