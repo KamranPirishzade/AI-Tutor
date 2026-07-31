@@ -10,7 +10,9 @@ export async function POST(request: Request) {
   const body = (await request.json()) as TranscribeRequest;
 
   try {
-    const text = await withRetry(() => transcribeAudio(body.audioBase64, body.audioMimeType));
+    const text = await withRetry(() =>
+      transcribeAudio(body.audioBase64, body.audioMimeType, body.contextText)
+    );
     const response: TranscribeResponse = { text };
     return NextResponse.json(response);
   } catch (err) {

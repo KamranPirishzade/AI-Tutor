@@ -39,9 +39,14 @@ export function useChatThread({
   const [inputText, setInputText] = useState("");
   // True only while waiting for the first chunk of a streamed answer — once
   // text starts arriving, the growing bubble itself is the "it's working"
-  // signal, so the separate typing indicator would be redundant/misleading
-  // during the (usually short) TTS/focus-info wait that follows.
+  // signal.
   const [isThinking, setIsThinking] = useState(false);
+  // True from the moment the streamed text finishes until audio playback
+  // actually starts. TTS generation alone regularly takes several seconds
+  // (see lib/gemini/speech.ts) — without this, that wait passes silently
+  // right after the full answer is already visible, which reads as "nothing
+  // is happening" until the audio suddenly starts.
+  const [isPreparingAudio, setIsPreparingAudio] = useState(false);
 
   const { isRecording, startRecording, stopRecording } = useVoiceRecorder();
   const { transcribeVoice, isTranscribing } = useTranscribeVoice();
@@ -68,7 +73,8 @@ export function useChatThread({
   async function handleStopRecording() {
     const recordedAudio = await stopRecording();
     try {
-      const transcript = await transcribeVoice(recordedAudio);
+      const contextText = `Hazırkı slaydın izahı: ${currentSlideNarration}\n\nTəqdimatın xülasəsi:\n${deckSummary}`;
+      const transcript = await transcribeVoice({ blob: recordedAudio, contextText });
       setInputText((prev) => (prev ? `${prev} ${transcript}` : transcript));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Səsi mətnə çevirərkən xəta baş verdi.");
@@ -111,6 +117,7 @@ export function useChatThread({
         currentSlideNarration,
         deckSummary,
         onTextChunk: handleAnswerChunk,
+        onTextComplete: () => setIsPreparingAudio(true),
       });
       setMessages((prev) =>
         prev.map((message) =>
@@ -128,6 +135,7 @@ export function useChatThread({
       onAnswerPlaybackEnd?.();
     } finally {
       setIsThinking(false);
+      setIsPreparingAudio(false);
     }
   }
 
@@ -138,6 +146,7 @@ export function useChatThread({
     isRecording,
     isTranscribing,
     isThinking,
+    isPreparingAudio,
     isAnswering,
     startRecording: handleStartRecording,
     stopRecording: handleStopRecording,

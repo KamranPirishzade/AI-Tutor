@@ -6,10 +6,12 @@ export function ChatMessageList({
   messages,
   isTranscribing,
   isThinking,
+  isPreparingAudio,
 }: {
   messages: ChatMessage[];
   isTranscribing: boolean;
   isThinking: boolean;
+  isPreparingAudio: boolean;
 }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
@@ -23,6 +25,7 @@ export function ChatMessageList({
       ))}
       {isTranscribing && <TypingIndicator label="Səs mətnə çevrilir" className="self-start" />}
       {isThinking && <TypingIndicator label="Düşünürəm" className="self-start" />}
+      {isPreparingAudio && <TypingIndicator label="Səs hazırlanır" className="self-start" />}
     </div>
   );
 }

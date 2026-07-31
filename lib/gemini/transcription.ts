@@ -17,18 +17,33 @@ const AZERBAIJANI_TRANSCRIPTION_INSTRUCTION =
   "yoxdursa, boş mətn qaytar, heç nə uydurma.";
 
 /** Transcribes spoken audio to text (no translation, no answering — just a
- * verbatim transcript of what was said). */
+ * verbatim transcript of what was said). An optional contextText (the
+ * current slide's narration / deck summary) is included purely as a
+ * vocabulary hint: lecture-specific terms and proper nouns transcribe far
+ * more reliably once the model has already seen them written out, instead
+ * of guessing at unfamiliar words from audio alone. */
 export async function transcribeAudio(
   audioBase64: string,
-  audioMimeType: string
+  audioMimeType: string,
+  contextText?: string
 ): Promise<string> {
   const ai = getGeminiClient();
+  const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [];
+  if (contextText) {
+    parts.push({
+      text:
+        "Kontekst (yalnız termin və adları düzgün tanımaq üçün istinad et, tərcümə etmə, " +
+        `şərh vermə): ${contextText}`,
+    });
+  }
+  parts.push({ inlineData: { mimeType: audioMimeType, data: audioBase64 } });
+
   const response = await ai.models.generateContent({
     model: TEXT_MODEL,
     contents: [
       {
         role: "user",
-        parts: [{ inlineData: { mimeType: audioMimeType, data: audioBase64 } }],
+        parts,
       },
     ],
     config: {

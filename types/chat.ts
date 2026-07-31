@@ -1,6 +1,10 @@
 export interface TranscribeRequest {
   audioBase64: string;
   audioMimeType: string;
+  /** The current slide's narration and/or a deck summary, passed purely as
+   * a vocabulary hint — lecture-specific terms and proper nouns transcribe
+   * far more reliably once the model has already seen them written out. */
+  contextText?: string;
 }
 
 export interface TranscribeResponse {

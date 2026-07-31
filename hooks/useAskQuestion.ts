@@ -19,6 +19,12 @@ interface AskQuestionInput {
   /** Called with the accumulated answer text after every streamed chunk,
    * so the caller can render it growing in real time. */
   onTextChunk: (accumulatedText: string) => void;
+  /** Called once the streamed answer text is fully known, right before the
+   * focus-info and TTS calls start — TTS alone regularly takes several
+   * seconds, and with the text already fully visible on screen by this
+   * point, that wait would otherwise pass with no indication anything is
+   * still happening. */
+  onTextComplete?: () => void;
 }
 
 /** Sends a text question to Gemini and returns the spoken answer's text and
@@ -39,6 +45,7 @@ export function useAskQuestion() {
       currentSlideNarration,
       deckSummary,
       onTextChunk,
+      onTextComplete,
     }: AskQuestionInput): Promise<ChatMessage> => {
       const chatRequest: ChatRequest = {
         questionText,
@@ -46,6 +53,7 @@ export function useAskQuestion() {
         deckSummary,
       };
       const answerText = await streamText("/api/chat", chatRequest, onTextChunk);
+      onTextComplete?.();
 
       const focusRequest: ChatFocusRequest = {
         questionText,

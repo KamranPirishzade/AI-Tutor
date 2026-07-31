@@ -5,14 +5,20 @@ import { postJson } from "@/lib/api";
 import { blobToBase64 } from "@/lib/encoding";
 import type { TranscribeRequest, TranscribeResponse } from "@/types";
 
+interface TranscribeVoiceInput {
+  blob: Blob;
+  /** Passed straight through as a vocabulary hint — see TranscribeRequest. */
+  contextText?: string;
+}
+
 /** Sends a recorded audio blob to Gemini and returns the spoken text. This
  * only transcribes — the caller decides what to do with the resulting text
  * (e.g. drop it in a text box for the user to review before sending). */
 export function useTranscribeVoice() {
   const mutation = useMutation({
-    mutationFn: async (blob: Blob): Promise<string> => {
+    mutationFn: async ({ blob, contextText }: TranscribeVoiceInput): Promise<string> => {
       const audioBase64 = await blobToBase64(blob);
-      const request: TranscribeRequest = { audioBase64, audioMimeType: blob.type };
+      const request: TranscribeRequest = { audioBase64, audioMimeType: blob.type, contextText };
       const { text } = await postJson<TranscribeResponse>("/api/transcribe", request);
       return text;
     },
