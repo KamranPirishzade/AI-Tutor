@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fadeAudioVolume } from "@/lib/audioFade";
 import type { Slide, NarrationFocusPoint } from "@/types";
 
@@ -29,46 +29,78 @@ function findActiveFocusPoint(
  * chat feature, when the user asks a question) can silence the narration
  * without it fighting for playback with something else. Also tracks which
  * of the slide's focus points playback has reached, so the on-slide
- * highlight can move roughly along with the narration. */
+ * highlight can move roughly along with the narration.
+ *
+ * Each slide keeps its own Audio element for the lifetime of the deck
+ * (see audioCacheRef) instead of a fresh one being created every time this
+ * slide becomes current — that's what lets pausing (manually, or being
+ * displaced by a chat question that jumps to a different slide and back)
+ * resume from the exact spot instead of restarting. A slide that has
+ * already played to the end resets its own position back to 0 the moment
+ * it ends (see handleEnded), so revisiting a *finished* slide still starts
+ * over, same as before — only an interrupted slide remembers its place.
+ *
+ * The cache is keyed by slide index only, not by deck — fine today since
+ * nothing in the UI lets a new deck replace an already-loaded one without
+ * a full page reload (which remounts this hook from scratch anyway). */
 export function useSlideAudioPlayer(slides: Slide[]) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [narrationFocusTerm, setNarrationFocusTerm] = useState<string | null>(null);
 
   const currentSlide = slides[currentIndex];
+  const audioCacheRef = useRef<Map<number, HTMLAudioElement>>(new Map());
 
   useEffect(() => {
-    if (!currentSlide?.audioBase64 || isPaused) return;
+    if (!currentSlide?.audioBase64) return;
 
-    const audio = new Audio(`data:audio/wav;base64,${currentSlide.audioBase64}`);
-    audio.volume = 0;
+    const cached = audioCacheRef.current.get(currentIndex);
+    const audio = cached ?? new Audio(`data:audio/wav;base64,${currentSlide.audioBase64}`);
+    if (!cached) audioCacheRef.current.set(currentIndex, audio);
     const focusPoints = currentSlide.focusPoints;
 
     function handleTimeUpdate() {
       if (focusPoints.length === 0 || !audio.duration) return;
       setNarrationFocusTerm(findActiveFocusPoint(focusPoints, audio.currentTime / audio.duration));
     }
-    audio.addEventListener("timeupdate", handleTimeUpdate);
-
-    audio.onended = () => {
+    function handleEnded() {
+      // Reset now so a *later* revisit of this same (finished) slide starts
+      // from the beginning — only an interrupted slide should resume mid-way.
+      audio.currentTime = 0;
       setCurrentIndex((index) => (index + 1 < slides.length ? index + 1 : index));
-    };
-    audio
-      .play()
-      .then(() => fadeAudioVolume(audio, 0, 1, AUDIO_FADE_MS))
-      .catch(() => {
-        // Autoplay can be blocked before any user gesture on the page — the
-        // pause/resume button doubles as a manual retry in that case.
-      });
+    }
+    audio.addEventListener("timeupdate", handleTimeUpdate);
+    audio.addEventListener("ended", handleEnded);
+
+    // Tracks whether *this* effect run actually started playback — the
+    // cleanup below must only fade-out-then-pause if it did. Otherwise a
+    // run where isPaused was already true (audio never played here) would
+    // still queue a fade+pause on cleanup, which — since fades run on a
+    // delay — fires shortly *after* a following resume's play() and
+    // silently pauses it again a moment later.
+    let didPlay = false;
+    if (!isPaused) {
+      didPlay = true;
+      audio.volume = 0;
+      audio
+        .play()
+        .then(() => fadeAudioVolume(audio, 0, 1, AUDIO_FADE_MS))
+        .catch(() => {
+          // Autoplay can be blocked before any user gesture on the page — the
+          // pause/resume button doubles as a manual retry in that case.
+        });
+    }
 
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
-      audio.onended = null;
-      fadeAudioVolume(audio, audio.volume, 0, AUDIO_FADE_MS, () => audio.pause());
+      audio.removeEventListener("ended", handleEnded);
+      if (didPlay) {
+        fadeAudioVolume(audio, audio.volume, 0, AUDIO_FADE_MS, () => audio.pause());
+      }
       setNarrationFocusTerm(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentSlide?.audioBase64, isPaused]);
+  }, [currentIndex, currentSlide?.audioBase64, isPaused]);
 
   function togglePause() {
     setIsPaused((paused) => !paused);
