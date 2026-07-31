@@ -1,4 +1,4 @@
-import { parseRateLimitInfo, isNetworkError } from "./geminiErrorInfo";
+import { parseRateLimitInfo, isNetworkError, isOverloadedError } from "./geminiErrorInfo";
 
 /** Turns a caught error into a specific, honest Azerbaijani message instead
  * of a generic "try again" — a daily quota, a per-minute rate limit, and a
@@ -18,6 +18,10 @@ export function describeApiError(err: unknown, fallbackMessage: string): string 
 
   if (isNetworkError(err)) {
     return "Şəbəkə bağlantısında xəta baş verdi. İnternet bağlantınızı yoxlayıb yenidən cəhd edin.";
+  }
+
+  if (isOverloadedError(err)) {
+    return "AI modeli hazırda həddindən artıq yüklənib. Bir neçə saniyə sonra yenidən cəhd edin.";
   }
 
   return fallbackMessage;

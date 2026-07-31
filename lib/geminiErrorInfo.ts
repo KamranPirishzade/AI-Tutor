@@ -54,3 +54,11 @@ export function isNetworkError(err: unknown): boolean {
   const cause = (err as { cause?: { code?: string } }).cause;
   return cause?.code === "ECONNRESET" || cause?.code === "ETIMEDOUT" || cause?.code === "ECONNREFUSED";
 }
+
+/** Gemini's "the model is currently experiencing high demand" response —
+ * a transient capacity issue on Google's side, unrelated to our own quota.
+ * Usually clears within a few seconds, so it's worth a couple of quick
+ * retries rather than failing immediately like a quota error would. */
+export function isOverloadedError(err: unknown): boolean {
+  return (err as { status?: number })?.status === 503;
+}
