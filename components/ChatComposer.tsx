@@ -1,6 +1,7 @@
 "use client";
 
 import { Mic, Square, Send } from "lucide-react";
+import { useAutosizeTextarea } from "@/hooks/useAutosizeTextarea";
 
 export function ChatComposer({
   inputText,
@@ -19,9 +20,12 @@ export function ChatComposer({
   onSend: () => void;
   disabled?: boolean;
 }) {
+  const textareaRef = useAutosizeTextarea(inputText);
+
   return (
     <div className="flex items-end gap-2">
       <textarea
+        ref={textareaRef}
         value={inputText}
         onChange={(e) => onInputTextChange(e.target.value)}
         onKeyDown={(e) => {
