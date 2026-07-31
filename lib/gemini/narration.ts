@@ -7,11 +7,6 @@ interface NarrationResult {
   focusPoints: NarrationFocusPoint[];
 }
 
-/** Turns Gemini's ordered list of key terms into positions (0-1 fraction
- * through the narration text) by finding each term's own character offset —
- * far more reliable than asking an LLM to estimate a numeric position
- * itself. Terms that don't appear verbatim (a paraphrase, say) are silently
- * dropped rather than breaking anything. */
 function locateFocusPoints(narrationText: string, orderedTerms: string[]): NarrationFocusPoint[] {
   const points: NarrationFocusPoint[] = [];
   for (const term of orderedTerms) {
@@ -22,10 +17,6 @@ function locateFocusPoints(narrationText: string, orderedTerms: string[]): Narra
   return points.sort((a, b) => a.positionFraction - b.positionFraction);
 }
 
-/** Sends one slide image to Gemini's vision input and asks for a short
- * spoken-style Azerbaijani explanation of it, plus the key terms it
- * mentions in the order it discusses them — used to move an on-slide
- * highlight roughly along with the narration as it plays. */
 export async function generateNarration(
   imageBase64: string,
   mimeType: string,

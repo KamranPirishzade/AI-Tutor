@@ -1,9 +1,3 @@
-/**
- * Gemini TTS returns raw headerless PCM (commonly reported as
- * "audio/L16;rate=24000" — 16-bit signed little-endian, mono). Browsers can't
- * play raw PCM via <audio>/Audio(), so every TTS response must be wrapped in
- * a minimal WAV header before being sent to the client.
- */
 export function pcmToWav(
   pcmBase64: string,
   sourceMimeType: string,
@@ -23,8 +17,8 @@ export function pcmToWav(
   header.writeUInt32LE(36 + dataSize, 4);
   header.write("WAVE", 8, "ascii");
   header.write("fmt ", 12, "ascii");
-  header.writeUInt32LE(16, 16); // fmt chunk size (PCM)
-  header.writeUInt16LE(1, 20); // audio format = 1 (PCM)
+  header.writeUInt32LE(16, 16);
+  header.writeUInt16LE(1, 20);
   header.writeUInt16LE(numChannels, 22);
   header.writeUInt32LE(sampleRate, 24);
   header.writeUInt32LE(byteRate, 28);

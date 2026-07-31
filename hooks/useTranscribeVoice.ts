@@ -7,13 +7,9 @@ import type { TranscribeRequest, TranscribeResponse } from "@/types";
 
 interface TranscribeVoiceInput {
   blob: Blob;
-  /** Passed straight through as a vocabulary hint — see TranscribeRequest. */
   contextText?: string;
 }
 
-/** Sends a recorded audio blob to Gemini and returns the spoken text. This
- * only transcribes — the caller decides what to do with the resulting text
- * (e.g. drop it in a text box for the user to review before sending). */
 export function useTranscribeVoice() {
   const mutation = useMutation({
     mutationFn: async ({ blob, contextText }: TranscribeVoiceInput): Promise<string> => {

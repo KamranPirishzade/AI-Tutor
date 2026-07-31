@@ -11,11 +11,6 @@ function normalize(text: string): string {
   return text.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
-/** Locates a focusTerm within a slide's extracted text and returns the
- * bounding box (union of every text run it spans) to highlight on the
- * slide image. Returns null if the term isn't found — e.g. the AI
- * paraphrased instead of quoting — in which case the caller just keeps the
- * chat-bubble bold-highlight, which always works regardless. */
 export function findFocusHighlight(
   textItems: SlideTextItem[],
   focusTerm: string
@@ -23,8 +18,6 @@ export function findFocusHighlight(
   const normalizedTerm = normalize(focusTerm);
   if (!normalizedTerm) return null;
 
-  // Concatenate every item's text into one searchable string, one space
-  // between runs, while tracking which item each character came from.
   let haystack = "";
   const charToItemIndex: number[] = [];
   textItems.forEach((item, itemIndex) => {

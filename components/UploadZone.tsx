@@ -1,6 +1,7 @@
 "use client";
 
 import { usePdfUpload } from "@/hooks/usePdfUpload";
+import { PDF_MIME_TYPE, UPLOAD_STATUS } from "@/lib/constants";
 import type { RenderedSlide } from "@/lib/pdfRender";
 
 export function UploadZone({
@@ -24,9 +25,9 @@ export function UploadZone({
       <label className="group flex cursor-pointer flex-col items-center gap-3 rounded-3xl border border-dashed border-ink-soft/40 bg-surface px-16 py-14 text-center shadow-sm transition hover:border-margin hover:shadow-md">
         <input
           type="file"
-          accept="application/pdf"
+          accept={PDF_MIME_TYPE}
           className="hidden"
-          disabled={status === "rendering"}
+          disabled={status === UPLOAD_STATUS.RENDERING}
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file) handleFileSelected(file);
@@ -36,7 +37,7 @@ export function UploadZone({
           PDF
         </span>
         <span className="text-ink">
-          {status === "rendering" ? "Slaydlar hazırlanır..." : "Seçmək üçün klikləyin"}
+          {status === UPLOAD_STATUS.RENDERING ? "Slaydlar hazırlanır..." : "Seçmək üçün klikləyin"}
         </span>
       </label>
     </main>

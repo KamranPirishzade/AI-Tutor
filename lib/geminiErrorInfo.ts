@@ -1,13 +1,6 @@
-/** Gemini's @google/genai SDK stringifies the raw REST error body into
- * Error.message, so it can be parsed back out — this is how we tell "wait
- * 30s and retry" apart from "you're done for today" apart from a plain
- * network blip, instead of treating every failure the same way. */
-
 interface RateLimitInfo {
   isRateLimited: boolean;
-  /** True for a per-day quota — retrying within this session cannot help. */
   isDailyQuota: boolean;
-  /** Google's own suggested wait, parsed from the error body, if present. */
   retryDelaySeconds: number | null;
 }
 
@@ -39,15 +32,12 @@ export function parseRateLimitInfo(err: unknown): RateLimitInfo {
       }
     }
   } catch {
-    // message wasn't the JSON shape we expected — still rate-limited,
-    // just without the extra detail.
+    // intentionally empty
   }
 
   return { isRateLimited: true, isDailyQuota, retryDelaySeconds };
 }
 
-/** A plain connection blip (reset, timeout, DNS hiccup) — worth one quick
- * retry, unlike a Gemini-side quota error. */
 export function isNetworkError(err: unknown): boolean {
   if (!(err instanceof Error)) return false;
   if (err.name === "TypeError" && /fetch failed/i.test(err.message)) return true;
@@ -55,10 +45,6 @@ export function isNetworkError(err: unknown): boolean {
   return cause?.code === "ECONNRESET" || cause?.code === "ETIMEDOUT" || cause?.code === "ECONNREFUSED";
 }
 
-/** Gemini's "the model is currently experiencing high demand" response —
- * a transient capacity issue on Google's side, unrelated to our own quota.
- * Usually clears within a few seconds, so it's worth a couple of quick
- * retries rather than failing immediately like a quota error would. */
 export function isOverloadedError(err: unknown): boolean {
   return (err as { status?: number })?.status === 503;
 }

@@ -1,5 +1,3 @@
-/** Ramps an <audio> element's volume from one level to another over time,
- * so switching slides crossfades instead of cutting abruptly. */
 export function fadeAudioVolume(
   audio: HTMLAudioElement,
   from: number,

@@ -1,8 +1,5 @@
 import type { ChatMessage } from "@/types";
 
-/** Wraps the focus term in the highlighter-mark span (see globals.css) — a
- * marker stroke drawn in behind the term, like a tutor circling it on your
- * page as they answer. */
 function withFocusTermHighlighted(text: string, focusTerm?: string | null) {
   if (!focusTerm) return text;
   const matchIndex = text.indexOf(focusTerm);

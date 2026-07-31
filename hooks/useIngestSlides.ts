@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { postJson } from "@/lib/api";
 import { createSemaphore } from "@/lib/semaphore";
+import { SLIDE_STATUS, SLIDE_IMAGE_MIME_TYPE } from "@/lib/constants";
 import type { RenderedSlide } from "@/lib/pdfRender";
 import type {
   IngestRequest,
@@ -14,9 +15,6 @@ import type {
   NarrationFocusPoint,
 } from "@/types";
 
-// Free-tier Gemini RPM is low; each slide needs 2 sequential calls
-// (narrate, then TTS), so a naive Promise.all over a whole deck would
-// mostly 429. Cap how many slide chains run at once instead.
 const MAX_CONCURRENT_SLIDE_CHAINS = 2;
 
 async function narrateAndSynthesizeSlide(
@@ -27,7 +25,7 @@ async function narrateAndSynthesizeSlide(
 
   const ingestRequest: IngestRequest = {
     imageBase64,
-    mimeType: "image/jpeg",
+    mimeType: SLIDE_IMAGE_MIME_TYPE,
     slideIndex: slide.index,
     totalSlides,
   };
@@ -55,10 +53,10 @@ export function useIngestSlides(deckId: string | null, rawSlides: RenderedSlide[
 
   const slides: Slide[] = rawSlides.map((raw, i) => {
     const query = queries[i];
-    let status: Slide["status"] = "pending";
-    if (query.isLoading) status = "narrating";
-    else if (query.isSuccess) status = "ready";
-    else if (query.isError) status = "error";
+    let status: Slide["status"] = SLIDE_STATUS.PENDING;
+    if (query.isLoading) status = SLIDE_STATUS.NARRATING;
+    else if (query.isSuccess) status = SLIDE_STATUS.READY;
+    else if (query.isError) status = SLIDE_STATUS.ERROR;
 
     return {
       index: raw.index,
@@ -72,7 +70,7 @@ export function useIngestSlides(deckId: string | null, rawSlides: RenderedSlide[
     };
   });
 
-  const readyCount = slides.filter((s) => s.status === "ready").length;
+  const readyCount = slides.filter((s) => s.status === SLIDE_STATUS.READY).length;
 
   return { slides, readyCount, totalCount: rawSlides.length };
 }

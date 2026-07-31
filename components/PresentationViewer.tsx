@@ -2,7 +2,8 @@
 
 import { ChevronLeft, ChevronRight, Pause, Play, Undo2 } from "lucide-react";
 import { TypingIndicator } from "./TypingIndicator";
-import { findFocusHighlight } from "@/lib/findFocusHighlight";
+import { SLIDE_STATUS } from "@/lib/constants";
+import type { HighlightBox } from "@/lib/findFocusHighlight";
 import type { Slide } from "@/types";
 
 export function PresentationViewer({
@@ -15,6 +16,7 @@ export function PresentationViewer({
   hasPrevious,
   hasNext,
   activeFocusTerm,
+  highlightBox,
   returnToSlideIndex,
 }: {
   slides: Slide[];
@@ -26,13 +28,10 @@ export function PresentationViewer({
   hasPrevious: boolean;
   hasNext: boolean;
   activeFocusTerm?: string | null;
+  highlightBox: HighlightBox | null;
   returnToSlideIndex?: number | null;
 }) {
   if (!currentSlide) return null;
-
-  const highlightBox = activeFocusTerm
-    ? findFocusHighlight(currentSlide.textItems, activeFocusTerm)
-    : null;
 
   return (
     <div className="flex w-full max-w-3xl flex-col items-center gap-4">
@@ -58,13 +57,13 @@ export function PresentationViewer({
           />
         )}
 
-        {currentSlide.status !== "ready" && currentSlide.status !== "error" && (
+        {currentSlide.status !== SLIDE_STATUS.READY && currentSlide.status !== SLIDE_STATUS.ERROR && (
           <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-surface/60 backdrop-blur-[1px]">
             <TypingIndicator label="AI slaydı hazırlayır" />
           </div>
         )}
 
-        {currentSlide.status === "error" && (
+        {currentSlide.status === SLIDE_STATUS.ERROR && (
           <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-surface/80 p-4">
             <p className="max-w-xs rounded-2xl border border-margin/40 bg-surface px-4 py-2.5 text-center text-sm text-margin shadow-sm">
               {currentSlide.error}

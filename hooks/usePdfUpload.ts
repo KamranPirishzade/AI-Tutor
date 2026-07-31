@@ -3,35 +3,32 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { renderPdfToImages, type RenderedSlide } from "@/lib/pdfRender";
+import { PDF_MIME_TYPE, UPLOAD_STATUS, type UploadStatus } from "@/lib/constants";
+import { MESSAGES } from "@/lib/messages";
 
-type UploadStatus = "idle" | "rendering";
-
-/** Validates the selected file, rasterizes it to per-slide images via pdf.js,
- * and hands the result up to the caller. Owns nothing beyond that one action. */
 export function usePdfUpload(onReady: (deckId: string, slides: RenderedSlide[]) => void) {
-  const [status, setStatus] = useState<UploadStatus>("idle");
+  const [status, setStatus] = useState<UploadStatus>(UPLOAD_STATUS.IDLE);
 
   async function handleFileSelected(file: File) {
-    if (file.type !== "application/pdf") {
-      toast.error("Zəhmət olmasa yalnız PDF fayl yükləyin.");
+    if (file.type !== PDF_MIME_TYPE) {
+      toast.error(MESSAGES.upload.invalidFileType);
       return;
     }
 
-    setStatus("rendering");
+    setStatus(UPLOAD_STATUS.RENDERING);
     try {
       const buffer = await file.arrayBuffer();
       const slides = await renderPdfToImages(buffer);
       if (slides.length === 0) {
-        toast.error("PDF-də heç bir səhifə tapılmadı.");
+        toast.error(MESSAGES.upload.noPages);
         return;
       }
       onReady(crypto.randomUUID(), slides);
     } catch (err) {
-      // pdf.js's own errors are internal/English — don't leak them, just log.
       console.error("[usePdfUpload]", err);
-      toast.error("Fayl emal edilərkən xəta baş verdi. Başqa bir PDF ilə cəhd edin.");
+      toast.error(MESSAGES.upload.processingFailed);
     } finally {
-      setStatus("idle");
+      setStatus(UPLOAD_STATUS.IDLE);
     }
   }
 

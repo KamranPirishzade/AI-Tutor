@@ -1,5 +1,3 @@
-/** Limits how many async jobs run at once — used to keep parallel per-slide
- * ingest+TTS chains under the Gemini free-tier RPM cap. */
 export function createSemaphore(maxConcurrent: number) {
   let active = 0;
   const queue: Array<() => void> = [];

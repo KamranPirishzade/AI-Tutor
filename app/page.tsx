@@ -1,16 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useState } from "react";
 import { UploadZone } from "@/components/UploadZone";
 import { PresentationViewer } from "@/components/PresentationViewer";
 import { ChatPanel } from "@/components/ChatPanel";
 import { MarginRule } from "@/components/MarginRule";
 import { useIngestSlides } from "@/hooks/useIngestSlides";
-import { useSlideAudioPlayer } from "@/hooks/useSlideAudioPlayer";
-import { findFocusHighlight } from "@/lib/findFocusHighlight";
+import { usePresentationSession } from "@/hooks/usePresentationSession";
+import { buildDeckSummary } from "@/lib/deckSummary";
 import type { RenderedSlide } from "@/lib/pdfRender";
-
-const SUMMARY_CHARS_PER_SLIDE = 200;
 
 export default function Home() {
   const [deckId, setDeckId] = useState<string | null>(null);
@@ -20,121 +18,18 @@ export default function Home() {
   const {
     currentSlide,
     isPaused,
-    narrationFocusTerm,
-    togglePause,
-    pause: pauseNarration,
-    resume: resumeNarration,
-    goToPrevious,
-    goToNext,
-    jumpToSlide,
+    activeFocusTerm,
+    highlightBox,
+    returnToSlideIndex,
     hasPrevious,
     hasNext,
-  } = useSlideAudioPlayer(slides);
-
-  // A highlight belongs to the slide it was found on — recording which
-  // slide alongside the term means it naturally stops applying once the
-  // view moves to a different slide, with no separate "clear on change"
-  // effect needed.
-  const [focusTerm, setFocusTerm] = useState<{ term: string; slideIndex: number } | null>(null);
-  const chatFocusTerm =
-    focusTerm && currentSlide && focusTerm.slideIndex === currentSlide.index
-      ? focusTerm.term
-      : null;
-
-  // A chat answer is a deliberate, explicit question — it should win over
-  // the passive narration highlight whenever both would apply.
-  const activeFocusTerm = chatFocusTerm ?? narrationFocusTerm;
-
-  // Set when a chat answer's focus term lives on a different slide than the
-  // one being viewed and we jump there automatically — records where to
-  // snap back to once the user asks to continue. Cleared by returning, or
-  // by the user taking manual control of navigation themselves.
-  const [returnToSlideIndex, setReturnToSlideIndex] = useState<number | null>(null);
-
-  // handleAnswerPlaybackEnd is captured inside useChatThread's handleSend
-  // closure at the moment a question is sent — well before the cross-slide
-  // jump (a few lines below, in handleFocusTermChange) has happened. By the
-  // time the answer's audio actually finishes and calls it back, that
-  // captured closure's own `returnToSlideIndex` is stale (still null). A
-  // ref sidesteps that: it's the same mutable box regardless of which
-  // render's closure reads it, so `.current` is always up to date.
-  const returnToSlideIndexRef = useRef(returnToSlideIndex);
-  useEffect(() => {
-    returnToSlideIndexRef.current = returnToSlideIndex;
-  }, [returnToSlideIndex]);
-
-  const deckSummary = useMemo(
-    () =>
-      slides
-        .filter((s) => s.narrationText)
-        .map((s) => `Slayd ${s.index + 1}: ${s.narrationText!.slice(0, SUMMARY_CHARS_PER_SLIDE)}`)
-        .join("\n"),
-    [slides]
-  );
-
-  function handleFocusChange({
-    term,
-    relevantSlideNumber,
-  }: {
-    term: string | null;
-    relevantSlideNumber: number | null;
-  }) {
-    if (!currentSlide) {
-      setFocusTerm(null);
-      return;
-    }
-
-    // The model names which slide it means directly (it has every slide's
-    // narration via the deck summary) — far more reliable than searching
-    // PDF text for a literal match, which fails whenever the relevant
-    // content is an image with nothing matching to find.
-    const targetSlide =
-      relevantSlideNumber != null ? (slides[relevantSlideNumber - 1] ?? currentSlide) : currentSlide;
-
-    if (targetSlide.index !== currentSlide.index) {
-      // Remember the very first spot we were displaced from, not
-      // wherever we happened to be after a previous jump.
-      setReturnToSlideIndex((prev) => prev ?? currentSlide.index);
-      jumpToSlide(targetSlide.index);
-    }
-
-    // The highlight box position is still best-effort text matching — if
-    // the term isn't literally findable there, we've still navigated to
-    // the right slide, just without a box drawn on it.
-    if (term && findFocusHighlight(targetSlide.textItems, term)) {
-      setFocusTerm({ term, slideIndex: targetSlide.index });
-    } else {
-      setFocusTerm(null);
-    }
-  }
-
-  function handleAnswerPlaybackEnd() {
-    // Stay paused on the jumped-to slide until the user asks to continue —
-    // only auto-resume here when we never left the original slide.
-    if (returnToSlideIndexRef.current === null) {
-      resumeNarration();
-    }
-  }
-
-  function handleTogglePause() {
-    if (returnToSlideIndex !== null && isPaused) {
-      jumpToSlide(returnToSlideIndex);
-      setReturnToSlideIndex(null);
-      resumeNarration();
-      return;
-    }
-    togglePause();
-  }
-
-  function handleGoToPrevious() {
-    setReturnToSlideIndex(null);
-    goToPrevious();
-  }
-
-  function handleGoToNext() {
-    setReturnToSlideIndex(null);
-    goToNext();
-  }
+    pauseNarration,
+    togglePause,
+    goToPrevious,
+    goToNext,
+    onFocusChange,
+    onAnswerPlaybackEnd,
+  } = usePresentationSession(slides);
 
   if (!deckId) {
     return (
@@ -157,12 +52,13 @@ export default function Home() {
           slides={slides}
           currentSlide={currentSlide}
           isPaused={isPaused}
-          togglePause={handleTogglePause}
-          goToPrevious={handleGoToPrevious}
-          goToNext={handleGoToNext}
+          togglePause={togglePause}
+          goToPrevious={goToPrevious}
+          goToNext={goToNext}
           hasPrevious={hasPrevious}
           hasNext={hasNext}
           activeFocusTerm={activeFocusTerm}
+          highlightBox={highlightBox}
           returnToSlideIndex={returnToSlideIndex}
         />
       </div>
@@ -170,10 +66,10 @@ export default function Home() {
       <ChatPanel
         currentSlideIndex={currentSlide?.index ?? 0}
         currentSlideNarration={currentSlide?.narrationText ?? ""}
-        deckSummary={deckSummary}
+        deckSummary={buildDeckSummary(slides)}
         onQuestionSent={pauseNarration}
-        onAnswerPlaybackEnd={handleAnswerPlaybackEnd}
-        onFocusChange={handleFocusChange}
+        onAnswerPlaybackEnd={onAnswerPlaybackEnd}
+        onFocusChange={onFocusChange}
       />
     </main>
   );

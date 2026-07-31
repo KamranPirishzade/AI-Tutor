@@ -1,7 +1,5 @@
 import { getGeminiClient, TTS_MODEL, TTS_VOICE } from "./client";
 
-/** Converts text to speech via Gemini's native TTS. Returns raw PCM audio —
- * callers must wrap it in a WAV header (see lib/wav.ts) before it's playable. */
 export async function synthesizeSpeech(
   text: string
 ): Promise<{ base64: string; mimeType: string }> {

@@ -1,5 +1,3 @@
-/** POSTs JSON to one of our own /api/* routes and parses the JSON response.
- * Every route returns `{ error: string }` (already Azerbaijani) on failure. */
 export async function postJson<TResponse>(url: string, body: unknown): Promise<TResponse> {
   const res = await fetch(url, {
     method: "POST",
@@ -13,10 +11,6 @@ export async function postJson<TResponse>(url: string, body: unknown): Promise<T
   return res.json() as Promise<TResponse>;
 }
 
-/** POSTs JSON to a route that streams back plain text (not JSON) — used
- * for /api/chat's streamed answer. Calls onChunk with the accumulated text
- * so far after every chunk arrives, and resolves with the complete text
- * once the stream ends. */
 export async function streamText(
   url: string,
   body: unknown,

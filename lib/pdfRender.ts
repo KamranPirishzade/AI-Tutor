@@ -1,3 +1,4 @@
+import { SLIDE_IMAGE_MIME_TYPE, SLIDE_IMAGE_QUALITY } from "@/lib/constants";
 import type { SlideTextItem } from "@/types";
 import type { PageViewport, PDFPageProxy } from "pdfjs-dist";
 
@@ -8,9 +9,8 @@ export interface RenderedSlide {
 }
 
 const TARGET_LONG_EDGE_PX = 1280;
+const PDF_WORKER_SRC = "/pdf.worker.min.mjs";
 
-/** Composes two PDF affine transform matrices [a,b,c,d,e,f] — same
- * convention pdf.js's own Util.transform uses (apply m2, then m1). */
 function multiplyTransforms(m1: number[], m2: number[]): number[] {
   return [
     m1[0] * m2[0] + m1[2] * m2[1],
@@ -22,18 +22,6 @@ function multiplyTransforms(m1: number[], m2: number[]): number[] {
   ];
 }
 
-/** Extracts each text run's position on the page, expressed as 0-1
- * fractions of the (unscaled) page's width/height — resolution-independent,
- * so it lines up with the rendered image at any display size. Used later
- * to draw a focus highlight in its real position (see
- * lib/findFocusHighlight.ts) instead of only bolding it in the chat.
- *
- * Algorithm matches pdf.js's own text-layer builder: item.width/height are
- * in raw PDF-point units, not pre-scaled to any rendering viewport, so they
- * pair with a plain page Y-flip — not with the scaled rendering viewport's
- * transform (that was tried first and produced wildly oversized boxes,
- * because it double-applied scale that item.width already accounts for).
- */
 async function extractTextItems(
   page: PDFPageProxy,
   baseViewport: PageViewport
@@ -71,12 +59,8 @@ async function extractTextItems(
 export async function renderPdfToImages(
   arrayBuffer: ArrayBuffer
 ): Promise<RenderedSlide[]> {
-  // Dynamic import, not a top-level one: pdfjs-dist references the browser
-  // global DOMMatrix at module-evaluation time, which crashes Next's SSR
-  // pass even inside a 'use client' component (Next still evaluates client
-  // component modules on the server for the initial HTML).
   const pdfjsLib = await import("pdfjs-dist");
-  pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+  pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_WORKER_SRC;
 
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   const slides: RenderedSlide[] = [];
@@ -100,7 +84,7 @@ export async function renderPdfToImages(
 
     slides.push({
       index: pageNum - 1,
-      dataUrl: canvas.toDataURL("image/jpeg", 0.85),
+      dataUrl: canvas.toDataURL(SLIDE_IMAGE_MIME_TYPE, SLIDE_IMAGE_QUALITY),
       textItems,
     });
   }

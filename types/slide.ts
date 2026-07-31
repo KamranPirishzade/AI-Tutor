@@ -1,6 +1,5 @@
-/** One run of text extracted from the source PDF, positioned as 0-1
- * fractions of the slide image's width/height (resolution-independent, so
- * it stays correct at any display size). */
+import type { SlideStatus, SLIDE_IMAGE_MIME_TYPE } from "@/lib/constants";
+
 export interface SlideTextItem {
   text: string;
   left: number;
@@ -9,11 +8,6 @@ export interface SlideTextItem {
   height: number;
 }
 
-/** A term the narration discusses, with its approximate position through
- * the narration text (0 = start, 1 = end) — NOT synced to actual audio
- * timing (Gemini TTS gives no word-level timestamps), just an estimate
- * based on where the term falls in the narration script. Used to switch
- * the on-slide highlight roughly along with playback. */
 export interface NarrationFocusPoint {
   term: string;
   positionFraction: number;
@@ -26,13 +20,13 @@ export interface Slide {
   narrationText?: string;
   focusPoints: NarrationFocusPoint[];
   audioBase64?: string;
-  status: "pending" | "narrating" | "synthesizing" | "ready" | "error";
+  status: SlideStatus;
   error?: string;
 }
 
 export interface IngestRequest {
   imageBase64: string;
-  mimeType: "image/jpeg" | "image/png";
+  mimeType: typeof SLIDE_IMAGE_MIME_TYPE;
   slideIndex: number;
   totalSlides: number;
 }

@@ -1,13 +1,5 @@
 import { getGeminiClient, TEXT_MODEL } from "./client";
 
-/**
- * Azerbaijani and Turkish are close, mutually-intelligible Turkic
- * languages — without an explicit hint, speech models tend to drift
- * toward the far more common Turkish and "correct" Azerbaijani spelling
- * into Turkish orthography (e.g. dropping ə, respelling ğ/x/q). This
- * instruction exists specifically to prevent that drift, not to steer
- * output language the way AZERBAIJANI_SYSTEM_PROMPT does for answers.
- */
 const AZERBAIJANI_TRANSCRIPTION_INSTRUCTION =
   "Sən Azərbaycan dilinə ixtisaslaşmış nitqi mətnə çevirmə sistemisən. Danışan Azərbaycan " +
   "dilində danışır — Türk dilində deyil. Bunu Türk dilinə və ya başqa bir dilə TƏRCÜMƏ ETMƏ, " +
@@ -16,12 +8,6 @@ const AZERBAIJANI_TRANSCRIPTION_INSTRUCTION =
   "mətnini qaytar — şərh, giriş sözü, dırnaq işarəsi əlavə etmə. Audioda başa düşülən nitq " +
   "yoxdursa, boş mətn qaytar, heç nə uydurma.";
 
-/** Transcribes spoken audio to text (no translation, no answering — just a
- * verbatim transcript of what was said). An optional contextText (the
- * current slide's narration / deck summary) is included purely as a
- * vocabulary hint: lecture-specific terms and proper nouns transcribe far
- * more reliably once the model has already seen them written out, instead
- * of guessing at unfamiliar words from audio alone. */
 export async function transcribeAudio(
   audioBase64: string,
   audioMimeType: string,
@@ -48,8 +34,6 @@ export async function transcribeAudio(
     ],
     config: {
       systemInstruction: AZERBAIJANI_TRANSCRIPTION_INSTRUCTION,
-      // Transcription should be faithful, not creative — greedy decoding
-      // reduces hallucination on unclear or quiet audio.
       temperature: 0,
     },
   });

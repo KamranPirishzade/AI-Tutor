@@ -1,9 +1,6 @@
 export interface TranscribeRequest {
   audioBase64: string;
   audioMimeType: string;
-  /** The current slide's narration and/or a deck summary, passed purely as
-   * a vocabulary hint — lecture-specific terms and proper nouns transcribe
-   * far more reliably once the model has already seen them written out. */
   contextText?: string;
 }
 
@@ -29,11 +26,6 @@ export interface ChatFocusRequest {
 
 export interface ChatFocusInfo {
   focusTerm: string | null;
-  /** 1-indexed slide number (matching the "Slayd N" labels in the deck
-   * summary) the answer is actually about, or null if it's just about the
-   * current slide / nothing specific. Lets the UI navigate to the right
-   * slide even when the source PDF has no extractable text to match
-   * against (e.g. the content is conveyed by an image). */
   relevantSlideNumber: number | null;
 }
 

@@ -3,10 +3,6 @@
 import { useRef, useState } from "react";
 import { getSupportedRecordingMimeType } from "@/lib/mediaRecorder";
 
-/** Wraps the browser's MediaRecorder API behind a simple start/stop pair.
- * stopRecording() resolves with the recorded audio once the recorder has
- * actually finished flushing its data, so callers can just `await` it
- * instead of juggling an `onstop` callback themselves. */
 export function useVoiceRecorder() {
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
